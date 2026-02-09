@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  scout:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scout-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Add your env vars here or use an env_file
+      # - PLAID_CLIENT_ID=${PLAID_CLIENT_ID}
+      # - PLAID_SECRET=${PLAID_SECRET}
+      # - PLAID_ENV=${PLAID_ENV}
+      # - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      # - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      # - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+    env_file:
+      - .env
+    restart: always
