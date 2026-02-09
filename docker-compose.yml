@@ -5,6 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        PLAID_CLIENT_ID: ${PLAID_CLIENT_ID}
+        PLAID_SECRET: ${PLAID_SECRET}
+        PLAID_ENV: ${PLAID_ENV}
+        STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+        STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
     container_name: scout-app
     ports:
       - "3000:3000"
