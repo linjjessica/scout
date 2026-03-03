@@ -8,6 +8,10 @@ export default function PlaidLink() {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Check if we're returning from an OAuth redirect
+  const isOAuthRedirect = typeof window !== 'undefined' &&
+    window.location.href.includes('oauth_state_id');
+
   useEffect(() => {
     const createLinkToken = async () => {
       try {
@@ -23,25 +27,37 @@ export default function PlaidLink() {
     createLinkToken();
   }, []);
 
-  const onSuccess = useCallback<PlaidLinkOnSuccess>(async (public_token, metadata) => {
+  const onSuccess = useCallback<PlaidLinkOnSuccess>(async (public_token) => {
     setLoading(true);
-    await fetch('/api/plaid/exchange_public_token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ public_token }),
-    });
-    console.log('Account connected successfully');
-    window.location.reload();
+    try {
+      await fetch('/api/plaid/exchange_public_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ public_token }),
+      });
+      console.log('Account connected successfully');
+    } catch (error) {
+      console.error('Error exchanging token:', error);
+    }
+    // Remove oauth_state_id from URL before reloading
+    window.location.href = window.location.pathname;
   }, []);
 
   const config: PlaidLinkOptions = {
     token,
     onSuccess,
+    // For OAuth redirect flow: pass the full current URL back to Plaid Link
+    ...(isOAuthRedirect && { receivedRedirectUri: window.location.href }),
   };
 
   const { open, ready } = usePlaidLink(config);
+
+  // Auto-open Plaid Link when returning from OAuth redirect
+  useEffect(() => {
+    if (isOAuthRedirect && ready) {
+      open();
+    }
+  }, [isOAuthRedirect, ready, open]);
 
   return (
     <button
