@@ -17,10 +17,11 @@ export async function POST() {
       language: 'en',
     };
 
-    // Redirect URI is only required for OAuth (development/production).
-    // In Sandbox, it often causes a 500 error if not whitelisted in the Dashboard.
-    if (process.env.PLAID_ENV !== 'sandbox') {
-      linkTokenConfig.redirect_uri = process.env.PLAID_REDIRECT_URI || 'http://localhost:3000';
+    // redirect_uri is required for OAuth in production, but Plaid requires it to be HTTPS.
+    // Skip it for local development (http://localhost).
+    const redirectUri = process.env.PLAID_REDIRECT_URI;
+    if (redirectUri && redirectUri.startsWith('https://')) {
+      linkTokenConfig.redirect_uri = redirectUri;
     }
 
     const response = await plaidClient.linkTokenCreate(linkTokenConfig);
