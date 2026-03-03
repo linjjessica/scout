@@ -2,15 +2,17 @@ import PricingTable from '@/components/pricing-table';
 
 export default function SubscriptionPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-16 pb-20">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Subscription</h1>
-        <p className="text-slate-600 mt-2">Manage your plan and billing details.</p>
+        <h1 className="text-5xl font-semibold text-black tracking-tight">
+          Subscription
+        </h1>
+        <p className="text-neutral-500 mt-2 text-lg">
+          Unlock deep insights and personalized reward strategies.
+        </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200">
-        <PricingTable />
-      </div>
+      <PricingTable />
     </div>
   );
 }
