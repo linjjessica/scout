@@ -54,10 +54,28 @@ export async function GET() {
   }
 
   // Analyze transactions
-  const analyzedTransactions = transactions.map((tx: any) => ({
-      ...tx,
-      analysis: analyzeTransaction(tx),
-  })).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const analyzedTransactions = transactions.map((tx: any) => {
+      // Plaid provides categories in a few ways. We prefer personal_finance_category.primary
+      // then fallback to the legacy category array, then 'General'.
+      let displayCategory = 'General';
+      
+      if (tx.personal_finance_category && tx.personal_finance_category.primary) {
+        // e.g. "FOOD_AND_DRINK", convert to "Food and Drink"
+        const primary = tx.personal_finance_category.primary;
+        displayCategory = primary.split('_').map((word: string) => 
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+      } else if (tx.category && tx.category.length > 0) {
+        displayCategory = tx.category[0];
+      }
+
+      return {
+        ...tx,
+        // Override the legacy category array so the frontend logic works seamlessly
+        category: [displayCategory],
+        analysis: analyzeTransaction(tx),
+      };
+  }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return NextResponse.json({ transactions: analyzedTransactions, accounts });
 }
