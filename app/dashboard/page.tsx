@@ -15,6 +15,13 @@ const categoryIcons: Record<string, any> = {
   'Entertainment': Play,
   'Utilities': Zap,
   'Community': LayoutGrid,
+  'Payment': DollarSign,
+  'Transfer': ArrowUpRight,
+  'Bank Fees': AlertCircle,
+  'Recreation': Play,
+  'Tax': DollarSign,
+  'Transportation': Car,
+  'General': ShoppingBag,
 };
 
 import { getCategoryCoverage } from "@/lib/analysis";
@@ -142,7 +149,7 @@ export default function DashboardPage() {
           ) : recentTransactions.length > 0 ? (
             <div className="divide-y divide-black/5 max-h-[420px] overflow-y-auto pr-2">
                {recentTransactions.map((tx, i) => {
-                 const MainCategory = tx.category?.[0] || 'Shops';
+                 const MainCategory = tx.category?.[0] || 'General';
                  const Icon = categoryIcons[MainCategory] || ShoppingBag;
                  return (
                    <div key={i} className="py-4 flex items-center justify-between group">
@@ -152,7 +159,11 @@ export default function DashboardPage() {
                          </div>
                          <div>
                             <h3 className="font-semibold text-black tracking-tight">{tx.name || tx.merchant_name}</h3>
-                            <p className="text-xs text-neutral-500">{tx.date}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs text-neutral-500">{tx.date}</span>
+                              <span className="w-1 h-1 rounded-full bg-neutral-300"></span>
+                              <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-widest">{MainCategory}</span>
+                            </div>
                          </div>
                       </div>
                       <p className="font-semibold text-black tracking-tight">-${tx.amount.toFixed(2)}</p>

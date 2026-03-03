@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, Chrome } from "lucide-react";
+import { CheckCircle, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, Chrome, DollarSign, ArrowUpRight, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Transaction {
@@ -29,6 +29,13 @@ const categoryIcons: Record<string, any> = {
   'Entertainment': Play,
   'Utilities': Zap,
   'Community': LayoutGrid,
+  'Payment': DollarSign,
+  'Transfer': ArrowUpRight,
+  'Bank Fees': AlertCircle,
+  'Recreation': Play,
+  'Tax': DollarSign,
+  'Transportation': Car,
+  'General': ShoppingBag,
 };
 
 export default function TransactionsPage() {
@@ -69,7 +76,7 @@ export default function TransactionsPage() {
         ) : (
           <div className="divide-y divide-black/5 bg-white/20">
              {transactions.map((tx, i) => {
-               const MainCategory = tx.category?.[0] || 'Shops';
+               const MainCategory = tx.category?.[0] || 'General';
                const Icon = categoryIcons[MainCategory] || ShoppingBag;
 
                return (
