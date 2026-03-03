@@ -5,26 +5,48 @@ import { analyzeTransaction } from '@/lib/analysis';
 import { cookies } from 'next/headers';
 
 export async function GET() {
-  // Retrieve the access_token from the cookie
+  // Retrieve the access_tokens from cookies
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get('access_token')?.value;
+  const accessTokensCookie = cookieStore.get('access_tokens')?.value;
+  const legacyTokenCookie = cookieStore.get('access_token')?.value;
+
+  let accessTokens: string[] = [];
+  if (accessTokensCookie) {
+    try {
+      accessTokens = JSON.parse(accessTokensCookie);
+    } catch (e) {
+      console.error('Failed to parse access_tokens cookie', e);
+    }
+  }
+  
+  if (legacyTokenCookie && !legacyTokenCookie.startsWith('[') && !accessTokens.includes(legacyTokenCookie)) {
+    accessTokens.push(legacyTokenCookie);
+  }
 
   let transactions: any[] = [];
   let accounts: any[] = [];
 
-  if (!accessToken) {
-     // Return mock data if no token is available to prevent crashing in demo
-     transactions = [ /*...mock data...*/ ];
+  if (accessTokens.length === 0) {
+     // Return empty arrays if no tokens
   } else {
     try {
-        const response = await plaidClient.transactionsSync({
-          access_token: accessToken,
-        });
-        const accountsResponse = await plaidClient.accountsGet({
-          access_token: accessToken,
-        });
-        transactions = response.data.added;
-        accounts = accountsResponse.data.accounts;
+      // Fetch for all tokens concurrently
+      await Promise.all(accessTokens.map(async (token) => {
+        try {
+          const response = await plaidClient.transactionsSync({
+            access_token: token,
+          });
+          const accountsResponse = await plaidClient.accountsGet({
+            access_token: token,
+          });
+          
+          transactions.push(...response.data.added);
+          accounts.push(...accountsResponse.data.accounts);
+        } catch (err) {
+          console.error(`Error fetching for token ${token.substring(0, 10)}...:`, err);
+          // Continue with other tokens if one fails
+        }
+      }));
     } catch (error) {
         console.error('Error fetching transactions:', error);
         return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
