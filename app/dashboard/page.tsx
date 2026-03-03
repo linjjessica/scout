@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
 import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid } from "lucide-react";
 
@@ -128,7 +129,9 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 apple-glass p-10">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-semibold text-neutral-900 tracking-tight">Recent Activity</h2>
-              <button className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors bg-white/50 px-4 py-2 rounded-xl border border-white/50 shadow-sm">View All</button>
+              <Link href="/dashboard/transactions">
+                <button className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors bg-white/50 px-4 py-2 rounded-xl border border-white/50 shadow-sm">View All</button>
+              </Link>
             </div>
           
           {loading ? (
