@@ -35,7 +35,7 @@ export async function GET() {
   const analyzedTransactions = transactions.map((tx: any) => ({
       ...tx,
       analysis: analyzeTransaction(tx),
-  }));
+  })).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return NextResponse.json({ transactions: analyzedTransactions, accounts });
 }
