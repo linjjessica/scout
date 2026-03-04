@@ -103,6 +103,10 @@ export function findDBProps(name: string | undefined | null, allCards: CardRule[
   if (!name || typeof name !== 'string') return null;
   const lowerU = name.toLowerCase();
   
+  // Skip clear non-credit-card matches
+  const skipKeywords = ['checking', 'savings', 'invest', 'loan', 'brokerage', 'savings account', 'checking account'];
+  if (skipKeywords.some(kw => lowerU.includes(kw))) return null;
+  
   return allCards.find(dbCard => {
     const lowerDB = dbCard.cardName.toLowerCase();
     
@@ -116,10 +120,17 @@ export function findDBProps(name: string | undefined | null, allCards: CardRule[
       // Only match brands that are at least 4 chars (Chase, Amex, Discover, etc.)
       if (brand.length >= 4 && lowerU.includes(brand)) {
          if (words.length > 1) {
-           const identifier = words[1];
-           // If we have an identifier (like "Gold" or "Chrome"), it counts as a match if either the brand matches
-           // OR both match (more precise). We'll accept brand match as a fallback.
+           const identifier = words[1].toLowerCase();
+           // If we have an identifier (like "Gold" or "Autograph" or "Chrome"), 
+           // we MUST match it to avoid "Wells Fargo Checking" matching "Wells Fargo Autograph"
            if (lowerU.includes(identifier)) return true;
+           
+           // If the input name IS just the brand (e.g. "Chase"), we'll allow it as a generic match
+           // But if it has other words, we expect more precision.
+           const userWords = lowerU.replace(/[^a-z0-9 ]/g, '').split(' ');
+           if (userWords.length === 1 && userWords[0] === brand.toLowerCase()) return true;
+           
+           return false;
          }
          return true; 
       }

@@ -46,7 +46,9 @@ export default function TransactionsPage() {
         const names = new Set<string>();
         institutions.forEach(inst => {
           inst.accounts.forEach((acc: any) => {
-            names.add(accountMappings[acc.account_id] || acc.name);
+            if (acc.subtype === 'credit card' || acc.type === 'credit') {
+              names.add(accountMappings[acc.account_id] || acc.name);
+            }
           });
         });
         return Array.from(names);
