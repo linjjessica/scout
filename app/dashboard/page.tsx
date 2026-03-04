@@ -223,7 +223,9 @@ export default function DashboardPage() {
                              </div>
                            )}
                            <div className="text-right">
-                             <p className="text-sm font-semibold text-black tabular-nums tracking-tight">-${(tx.amount || 0).toFixed(2)}</p>
+                              <p className={`text-sm font-semibold tabular-nums tracking-tight ${tx.amount < 0 ? 'text-emerald-600' : 'text-black'}`}>
+                                {tx.amount < 0 ? `+$${Math.abs(tx.amount || 0).toFixed(2)}` : `-$${(tx.amount || 0).toFixed(2)}`}
+                              </p>
                              {tx.analysis && (
                                <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-tighter mt-0.5">
                                  {tx.analysis.isOptimized ? (
