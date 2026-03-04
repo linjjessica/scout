@@ -58,7 +58,7 @@ export default function TransactionsPage() {
           <p className="text-neutral-500 mt-2 text-lg">Deep analysis of your spending habits and reward distribution.</p>
          </div>
          <button 
-            onClick={() => fetchTransactions(true)}
+            onClick={() => fetchTransactions()}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-3 bg-white/50 hover:bg-white text-black rounded-xl font-semibold text-sm uppercase tracking-widest transition-all shadow-sm border border-black/5 disabled:opacity-50"
           >
