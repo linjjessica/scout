@@ -66,10 +66,6 @@ export default function PlaidLink() {
     if (error != null) {
       console.error('Plaid Link Error Detail:', error);
       console.log('Plaid Link Exit Metadata:', metadata);
-      // Alert only production to surface the code quickly
-      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-        alert(`Plaid Connection Error: ${error.error_message || error.display_message || 'Internal connection error'}\nCode: ${error.error_code}`);
-      }
     }
   }, []);
 
