@@ -52,6 +52,9 @@ export default function PlaidLink() {
         body: JSON.stringify({ public_token }),
       });
       console.log('Account connected successfully');
+      
+      // Clear the cache so that the dashboard re-fetches new data immediately
+      localStorage.removeItem('scout_transactions_cache');
     } catch (error) {
       console.error('Error exchanging token:', error);
     }
