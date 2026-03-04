@@ -164,6 +164,9 @@ export default function DashboardPage() {
                  const cache = getCategoryStyle(tx.category?.[0]);
                  const IconComponent = cache.icon;
 
+                // Debug log for Inspector > Console
+                console.log(`[Dashboard Debug] ${tx.name || tx.merchant_name} -> Account: ${tx.accountName}`);
+
                  return (
                     <div key={i} className="py-4 flex items-center justify-between group gap-4">
                        <div className="flex items-center gap-4 min-w-0 flex-1">
