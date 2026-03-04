@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
-import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign, LayoutGrid, CheckCircle } from "lucide-react";
+import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign, LayoutGrid, CheckCircle, Wallet } from "lucide-react";
 import { getCategoryStyle, formatCategoryName } from "@/lib/categories";
 import { getCategoryCoverage, getBaselineRate, analyzeTransaction, CardRule } from "@/lib/analysis";
 
@@ -150,10 +150,15 @@ export default function DashboardPage() {
               </div>
               <h2 className="text-3xl font-bold text-neutral-900 tracking-tight mb-4">Analysis Incomplete</h2>
               <p className="text-neutral-500 text-lg mb-8 leading-relaxed">
-                Please sync your bank account to unlock your personalized cashback analysis and rewards optimization.
+                Please sync your bank account on the My Cards page to unlock your personalized cashback analysis.
               </p>
               <div className="flex justify-center">
-                <PlaidLink />
+                <Link href="/dashboard/cards">
+                  <button className="flex items-center gap-2 px-8 py-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-lg">
+                    <Wallet className="w-5 h-5" />
+                    Go to My Cards
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -293,96 +298,6 @@ export default function DashboardPage() {
           </div>
         </div>
         </div>
-      </div>
-
-      <div className="apple-glass p-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
-          <div>
-            <h2 className="text-2xl font-semibold text-neutral-900 tracking-tight">Connected Accounts</h2>
-            <p className="text-sm text-neutral-500 mt-1">Manage your linked institutions and their associated accounts.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <PlaidLink />
-            <div className="hidden sm:flex w-12 h-12 bg-neutral-900 rounded-2xl items-center justify-center shadow-lg">
-              <Landmark className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        {loading ? (
-          <div className="py-20 text-center">
-            <div className="inline-block w-8 h-8 border-4 border-neutral-200 border-t-neutral-800 rounded-full animate-spin mb-4"></div>
-            <p className="text-neutral-500 font-bold tracking-widest uppercase text-xs">Fetching institutions...</p>
-          </div>
-        ) : institutions.length > 0 ? (
-          <div className="grid gap-8">
-            {institutions.map((inst, idx) => (
-              <div key={idx} className="bg-white/40 border border-white/60 rounded-[2rem] overflow-hidden shadow-sm transition-all hover:shadow-md hover:bg-white/50">
-                <div className="p-8 border-b border-black/5 flex items-center justify-between bg-white/30">
-                  <div className="flex items-center gap-5">
-                    {inst.institution.logo ? (
-                      <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center p-2 shadow-sm border border-black/5 overflow-hidden">
-                        <img 
-                          src={`data:image/png;base64,${inst.institution.logo}`} 
-                          alt={inst.institution.name}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-14 h-14 rounded-2xl bg-neutral-900 flex items-center justify-center shadow-md">
-                        <Landmark className="w-7 h-7 text-white" />
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="text-xl font-bold text-neutral-900 tracking-tight">{inst.institution.name}</h3>
-                      <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest mt-1">{inst.accounts.length} Accounts Linked</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-4 sm:p-8">
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {inst.accounts.map((acc: any, i: number) => (
-                      <div key={i} className="bg-white/60 p-6 rounded-2xl border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-all hover:-translate-y-1 group">
-                        <div className="flex items-center gap-4">
-                          <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110",
-                            acc.subtype === 'credit card' ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"
-                          )}>
-                            {acc.subtype === 'credit card' ? <CreditCard className="w-5 h-5" /> : <Landmark className="w-5 h-5" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-neutral-900 tracking-tight truncate">{acc.name}</h4>
-                            <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5 truncate">
-                              {acc.subtype} •••• {acc.mask}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
-                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Available Balance</p>
-                           <p className="font-semibold text-neutral-900 tabular-nums">
-                             ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
-                           </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="py-20 bg-white/40 border border-white/60 rounded-[2.5rem] shadow-inner text-center">
-             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100">
-               <span className="text-neutral-200 text-3xl">∅</span>
-             </div>
-             <p className="text-neutral-900 font-bold text-lg mb-2 tracking-tight">No institutions connected</p>
-             <p className="text-neutral-500 max-w-sm mx-auto">Sync your first bank account to start analyzing your rewards across all your cards.</p>
-             <div className="mt-8 flex justify-center">
-               <PlaidLink />
-             </div>
-          </div>
-        )}
       </div>
     </div>
   );

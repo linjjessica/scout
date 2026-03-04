@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CreditCard, Plus, Trash2, Save, X, ChevronDown, Check } from "lucide-react";
+import Link from "next/link";
+import PlaidLink from "@/components/plaid-link";
+import { CreditCard, Plus, Trash2, Save, X, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CardRule, CARDS } from "@/lib/analysis";
 
@@ -24,6 +26,8 @@ const TRUSTED_PROVIDERS = [
 export default function CustomCardsPage() {
   const [customCards, setCustomCards] = useState<CardRule[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [institutions, setInstitutions] = useState<any[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
   
   // Form State
   const [provider, setProvider] = useState("Chase");
@@ -35,6 +39,25 @@ export default function CustomCardsPage() {
     const customCardsData = localStorage.getItem('scout_custom_cards');
     if (customCardsData) {
       setCustomCards(JSON.parse(customCardsData));
+    }
+    
+    // Load institutions from the cache first
+    const cachedData = localStorage.getItem('scout_transactions_cache');
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData);
+      if (parsed.institutions) {
+        setInstitutions(parsed.institutions);
+      }
+      setLoadingAccounts(false);
+    } else {
+      // If no cache, fetch directly
+      fetch('/api/plaid/transactions')
+        .then(r => r.json())
+        .then(data => {
+          if (data.institutions) setInstitutions(data.institutions);
+          localStorage.setItem('scout_transactions_cache', JSON.stringify(data));
+        })
+        .finally(() => setLoadingAccounts(false));
     }
   }, []);
 
@@ -245,6 +268,90 @@ export default function CustomCardsPage() {
               </div>
            </div>
          ))}
+       </div>
+
+       {/* Connected Accounts Section */}
+       <div className="apple-glass p-10">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+           <div>
+             <h2 className="text-2xl font-semibold text-neutral-900 tracking-tight">Connected Accounts</h2>
+             <p className="text-sm text-neutral-500 mt-1">Sync a bank account to start analyzing cashback rewards.</p>
+           </div>
+           <div className="flex items-center gap-4">
+             <PlaidLink />
+             <div className="hidden sm:flex w-12 h-12 bg-neutral-900 rounded-2xl items-center justify-center shadow-lg">
+               <Landmark className="w-6 h-6 text-white" />
+             </div>
+           </div>
+         </div>
+
+         {loadingAccounts ? (
+           <div className="py-20 text-center">
+             <div className="inline-block w-8 h-8 border-4 border-neutral-200 border-t-neutral-800 rounded-full animate-spin mb-4"></div>
+             <p className="text-neutral-500 font-bold tracking-widest uppercase text-xs">Fetching institutions...</p>
+           </div>
+         ) : institutions.length > 0 ? (
+           <div className="grid gap-8">
+             {institutions.map((inst: any, idx: number) => (
+               <div key={idx} className="bg-white/40 border border-white/60 rounded-[2rem] overflow-hidden shadow-sm transition-all hover:shadow-md hover:bg-white/50">
+                 <div className="p-8 border-b border-black/5 flex items-center gap-5 bg-white/30">
+                   {inst.institution.logo ? (
+                     <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center p-2 shadow-sm border border-black/5 overflow-hidden">
+                       <img src={`data:image/png;base64,${inst.institution.logo}`} alt={inst.institution.name} className="w-full h-full object-contain" />
+                     </div>
+                   ) : (
+                     <div className="w-14 h-14 rounded-2xl bg-neutral-900 flex items-center justify-center shadow-md">
+                       <Landmark className="w-7 h-7 text-white" />
+                     </div>
+                   )}
+                   <div>
+                     <h3 className="text-xl font-bold text-neutral-900 tracking-tight">{inst.institution.name}</h3>
+                     <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest mt-1">{inst.accounts.length} Accounts Linked</p>
+                   </div>
+                 </div>
+                 <div className="p-4 sm:p-8">
+                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                     {inst.accounts.map((acc: any, i: number) => (
+                       <div key={i} className="bg-white/60 p-6 rounded-2xl border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-all hover:-translate-y-1 group">
+                         <div className="flex items-center gap-4">
+                           <div className={cn(
+                             "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110",
+                             acc.subtype === 'credit card' ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"
+                           )}>
+                             {acc.subtype === 'credit card' ? <CreditCard className="w-5 h-5" /> : <Landmark className="w-5 h-5" />}
+                           </div>
+                           <div className="flex-1 min-w-0">
+                             <h4 className="font-semibold text-neutral-900 tracking-tight truncate">{acc.name}</h4>
+                             <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5 truncate">
+                               {acc.subtype} •••• {acc.mask}
+                             </p>
+                           </div>
+                         </div>
+                         <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
+                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Available Balance</p>
+                           <p className="font-semibold text-neutral-900 tabular-nums">
+                             ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
+                           </p>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               </div>
+             ))}
+           </div>
+         ) : (
+           <div className="py-20 bg-white/40 border border-white/60 rounded-[2.5rem] shadow-inner text-center">
+             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100">
+               <span className="text-neutral-200 text-3xl">∅</span>
+             </div>
+             <p className="text-neutral-900 font-bold text-lg mb-2 tracking-tight">No institutions connected</p>
+             <p className="text-neutral-500 max-w-sm mx-auto">Sync your first bank account to start analyzing your rewards.</p>
+             <div className="mt-8 flex justify-center">
+               <PlaidLink />
+             </div>
+           </div>
+         )}
        </div>
     </div>
   );
