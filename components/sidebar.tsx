@@ -67,7 +67,7 @@ export function Sidebar() {
           </p>
           <div className="pt-2 mt-2 border-t border-neutral-100 flex items-center justify-between">
             <p className="text-[10px] font-medium text-neutral-400">
-              Made by <span className="text-neutral-900 font-semibold italic">Jessica Lin</span>
+              Made with ❤️ by <a href="https://www.linkedin.com/in/jjessicalin/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 font-bold underline decoration-indigo-200 underline-offset-2 hover:text-indigo-500 transition-colors">Jessica Lin</a>
             </p>
           </div>
         </div>
