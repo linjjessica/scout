@@ -1,16 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
-import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign, LayoutGrid, CheckCircle, Wallet } from "lucide-react";
+import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign, LayoutGrid, CheckCircle, Wallet, CalendarDays } from "lucide-react";
 import { getCategoryStyle, formatCategoryName } from "@/lib/categories";
 import { getCategoryCoverage, getBaselineRate, analyzeTransaction, CardRule } from "@/lib/analysis";
+
+type DatePreset = 'this_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'all';
+
+function getPresetRange(preset: DatePreset): { start: Date | null; end: Date | null } {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (preset === 'all') return { start: null, end: null };
+  if (preset === 'this_month') return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth() + 1, 0) };
+  if (preset === 'last_month') return { start: new Date(now.getFullYear(), now.getMonth() - 1, 1), end: new Date(now.getFullYear(), now.getMonth(), 0) };
+  if (preset === 'last_3_months') return { start: new Date(now.getFullYear(), now.getMonth() - 3, 1), end: today };
+  if (preset === 'last_6_months') return { start: new Date(now.getFullYear(), now.getMonth() - 6, 1), end: today };
+  return { start: null, end: null };
+}
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [datePreset, setDatePreset] = useState<DatePreset>('this_month');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+  const [showCustom, setShowCustom] = useState(false);
 
   const [customCards, setCustomCards] = useState<CardRule[]>([]);
 
@@ -111,17 +128,48 @@ export default function DashboardPage() {
     fetchTransactions();
   }, []);
 
-  const totalSpend = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+  // --- Date Filtering ---
+  const PRESETS: { label: string; value: DatePreset }[] = [
+    { label: 'This Month', value: 'this_month' },
+    { label: 'Last Month', value: 'last_month' },
+    { label: 'Last 3 Mo', value: 'last_3_months' },
+    { label: 'Last 6 Mo', value: 'last_6_months' },
+    { label: 'All Time', value: 'all' },
+  ];
+
+  const filteredTransactions = useMemo(() => {
+    let start: Date | null = null;
+    let end: Date | null = null;
+    if (showCustom && customStart && customEnd) {
+      start = new Date(customStart + 'T00:00:00');
+      end = new Date(customEnd + 'T23:59:59');
+    } else {
+      const range = getPresetRange(datePreset);
+      start = range.start;
+      end = range.end;
+    }
+    return transactions.filter(tx => {
+      if (!start && !end) return true;
+      const txDate = new Date(tx.date + 'T00:00:00');
+      if (start && txDate < start) return false;
+      if (end && txDate > end) return false;
+      return true;
+    });
+  }, [transactions, datePreset, showCustom, customStart, customEnd]);
+
+  // Only count outgoing spending (positive amounts in Plaid = money out)
+  const spendingTxs = filteredTransactions.filter(tx => tx.amount > 0);
+  const totalSpend = spendingTxs.reduce((sum, tx) => sum + tx.amount, 0);
 
   // Calculate dynamic baseline based on user's actual cards
   const baselineRate = getBaselineRate(accountNames, customCards);
-  const cashbackEarned = transactions.reduce((sum, tx) => sum + (tx.amount * baselineRate), 0);
-  const missedRewards = transactions.reduce((sum, tx) => sum + (tx.amount * Math.max(0, (tx.analysis?.rate || baselineRate) - baselineRate)), 0);
+  const cashbackEarned = spendingTxs.reduce((sum, tx) => sum + (tx.amount * (tx.analysis?.currentRate || baselineRate)), 0);
+  const missedRewards = spendingTxs.reduce((sum, tx) => sum + (tx.amount * Math.max(0, (tx.analysis?.rate || baselineRate) - (tx.analysis?.currentRate || baselineRate))), 0);
   
   // Calculate distinct accounts connected (filtering for credit cards only)
   const linkedCards = creditCards.length > 0 ? creditCards.length : (transactions.length > 0 ? 1 : 0);
   
-  const recentTransactions = transactions.slice(0, 50);
+  const recentTransactions = filteredTransactions.slice(0, 50);
 
   return (
     <div className="space-y-16 pb-20">
@@ -134,6 +182,54 @@ export default function DashboardPage() {
             Welcome back! Your portfolio is optimized for maximum rewards.
           </p>
         </div>
+      </div>
+
+      {/* Date Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {PRESETS.map(p => (
+            <button
+              key={p.value}
+              onClick={() => { setDatePreset(p.value); setShowCustom(false); }}
+              className={cn(
+                "px-3.5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all border",
+                !showCustom && datePreset === p.value
+                  ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
+                  : "bg-white/60 text-neutral-500 border-neutral-200 hover:bg-white hover:text-neutral-800"
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
+          <button
+            onClick={() => setShowCustom(v => !v)}
+            className={cn(
+              "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all border",
+              showCustom
+                ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
+                : "bg-white/60 text-neutral-500 border-neutral-200 hover:bg-white hover:text-neutral-800"
+            )}
+          >
+            <CalendarDays className="w-3.5 h-3.5" /> Custom
+          </button>
+        </div>
+        {showCustom && (
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={customStart}
+              onChange={e => setCustomStart(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-200"
+            />
+            <span className="text-neutral-400 text-xs font-bold">→</span>
+            <input
+              type="date"
+              value={customEnd}
+              onChange={e => setCustomEnd(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-200"
+            />
+          </div>
+        )}
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
