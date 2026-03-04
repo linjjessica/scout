@@ -27,13 +27,13 @@ const CARDS: CardRule[] = [
     categories: {},
     defaultRate: 0.02,
   },
-  {
-    cardName: 'Plaid Business Credit Card',
-    categories: {
-      'FOOD AND DRINK': 0.03,
-    },
-    defaultRate: 0.02,
-  },
+  // {
+  //   cardName: 'Plaid Business Credit Card',
+  //   categories: {
+  //     'FOOD AND DRINK': 0.03,
+  //   },
+  //   defaultRate: 0.02,
+  // },
   {
     cardName: 'Plaid Credit Card',
     categories: {},
