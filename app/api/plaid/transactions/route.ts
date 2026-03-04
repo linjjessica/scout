@@ -152,6 +152,7 @@ export async function GET() {
         // Override the legacy category array so the frontend/analysis works seamlessly
         category: [displayCategory],
         scoutDebugField: "DEPLOYMENT_VERIFIED_V4",
+        scoutDebugIsCreditCard: isCreditCard,
         analysis: analyzeTransaction(txWithCategory, userCardNames, accountName, isCreditCard),
       };
   }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
