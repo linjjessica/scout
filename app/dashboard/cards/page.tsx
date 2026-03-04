@@ -393,7 +393,7 @@ export default function CustomCardsPage() {
                                   <h4 className="font-semibold text-neutral-900 tracking-tight truncate">
                                     {accountMappings[acc.account_id] || acc.name}
                                   </h4>
-                                  <button onClick={() => handleInlineEditStart(acc)} className="opacity-0 group-hover/edit:opacity-100 text-[9px] font-bold text-neutral-400 hover:text-neutral-900 uppercase tracking-widest px-1.5 py-0.5 rounded bg-neutral-100/50 hover:bg-neutral-200 transition-all border border-neutral-200/50 hover:border-neutral-300">
+                                  <button onClick={() => handleInlineEditStart(acc)} className="text-[9px] font-bold text-neutral-400 hover:text-neutral-900 uppercase tracking-widest px-1.5 py-0.5 rounded bg-neutral-100/50 hover:bg-neutral-200 transition-all border border-neutral-200/50 hover:border-neutral-300">
                                     Edit Mapping
                                   </button>
                                 </div>
