@@ -187,3 +187,17 @@ export function getCategoryCoverage(userCardNames: string[]) {
     };
   });
 }
+export function getBaselineRate(userCardNames: string[]) {
+  if (!userCardNames || userCardNames.length === 0) return 0.01;
+  
+  const userCards = CARDS.filter(dbCard => 
+    userCardNames.some(uName => 
+      uName.toLowerCase().includes(dbCard.cardName.toLowerCase()) || 
+      dbCard.cardName.toLowerCase().includes(uName.toLowerCase())
+    )
+  );
+  
+  if (userCards.length === 0) return 0.01;
+  
+  return Math.max(...userCards.map(c => c.defaultRate));
+}

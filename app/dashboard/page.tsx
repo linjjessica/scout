@@ -5,7 +5,7 @@ import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
 import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign, LayoutGrid } from "lucide-react";
 import { getCategoryStyle, formatCategoryName } from "@/lib/categories";
-import { getCategoryCoverage } from "@/lib/analysis";
+import { getCategoryCoverage, getBaselineRate } from "@/lib/analysis";
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -72,8 +72,8 @@ export default function DashboardPage() {
 
   const totalSpend = transactions.reduce((sum, tx) => sum + tx.amount, 0);
 
-  // The user currently uses Citi Double Cash for all purchases (2% flat rate)
-  const baselineRate = 0.02;
+  // Calculate dynamic baseline based on user's actual cards
+  const baselineRate = getBaselineRate(accountNames);
   const cashbackEarned = transactions.reduce((sum, tx) => sum + (tx.amount * baselineRate), 0);
   const missedRewards = transactions.reduce((sum, tx) => sum + (tx.amount * Math.max(0, (tx.analysis?.rate || baselineRate) - baselineRate)), 0);
   
