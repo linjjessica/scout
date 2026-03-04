@@ -114,9 +114,9 @@ export default function DashboardPage() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Total Spend", value: `$${totalSpend.toFixed(2)}`, icon: DollarSign, trend: totalSpend > 0 ? "+12%" : "0%" },
-          { label: "Cashback Earned", value: `$${cashbackEarned.toFixed(2)}`, icon: TrendingUp, trend: cashbackEarned > 0 ? "+5.4%" : "0%" },
-          { label: "Missed Rewards", value: `$${missedRewards.toFixed(2)}`, icon: AlertCircle, trend: missedRewards > 0 ? "-2%" : "0%" },
+          { label: "Total Spend", value: `$${Math.abs(totalSpend).toFixed(2)}`, icon: DollarSign, trend: totalSpend > 0 ? "+12%" : "0%" },
+          { label: "Cashback Earned", value: `$${Math.abs(cashbackEarned).toFixed(2)}`, icon: TrendingUp, trend: cashbackEarned > 0 ? "+5.4%" : "0%" },
+          { label: "Missed Rewards", value: `-$${missedRewards.toFixed(2)}`, icon: AlertCircle, trend: missedRewards > 0 ? "-2%" : "0%" },
           { label: "Linked Cards", value: linkedCards.toString(), icon: CreditCard, trend: "0%" },
         ].map((stat, i) => (
           <div key={i} className="apple-glass p-7 flex flex-col apple-glass-hover group">
