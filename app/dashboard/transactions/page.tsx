@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, Chrome, DollarSign, ArrowUpRight, AlertCircle } from "lucide-react";
+import { CheckCircle, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, Chrome, DollarSign, ArrowUpRight, AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Transaction {
@@ -42,30 +42,56 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const res = await fetch('/api/plaid/transactions');
-        const data = await res.json();
+  const fetchTransactions = async (forceRefresh = false) => {
+    setLoading(true);
+    try {
+      const cacheKey = 'scout_transactions_cache';
+      const cachedData = localStorage.getItem(cacheKey);
+
+      if (!forceRefresh && cachedData) {
+        const parsed = JSON.parse(cachedData);
+        setTransactions(parsed.transactions || []);
+        // The transactions page only needs transactions, but we can set the whole cache
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch('/api/plaid/transactions');
+      const data = await res.json();
+      
+      if (res.ok) {
         if (data.transactions) {
           setTransactions(data.transactions);
         }
-      } catch (error) {
-        console.error("Failed to fetch transactions", error);
-      } finally {
-        setLoading(false);
+        localStorage.setItem(cacheKey, JSON.stringify(data));
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch transactions", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTransactions();
   }, []);
 
   return (
     <div className="space-y-16 pb-20">
-       <div>
-        <h1 className="text-5xl font-semibold text-black tracking-tight">Transactions</h1>
-        <p className="text-neutral-500 mt-2 text-lg">Deep analysis of your spending habits and reward distribution.</p>
-      </div>
+       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+         <div>
+          <h1 className="text-5xl font-semibold text-black tracking-tight">Transactions</h1>
+          <p className="text-neutral-500 mt-2 text-lg">Deep analysis of your spending habits and reward distribution.</p>
+         </div>
+         <button 
+            onClick={() => fetchTransactions(true)}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-3 bg-white/50 hover:bg-white text-black rounded-xl font-semibold text-sm uppercase tracking-widest transition-all shadow-sm border border-black/5 disabled:opacity-50"
+          >
+            <RefreshCw className={cn("w-4 h-4", loading ? "animate-spin" : "")} />
+            Refresh
+          </button>
+       </div>
 
       <div className="apple-glass rounded-[2rem] overflow-hidden">
         {loading ? (

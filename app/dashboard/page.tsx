@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
-import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid } from "lucide-react";
+import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, RefreshCw } from "lucide-react";
 
 const categoryIcons: Record<string, any> = {
   'Travel': Car,
@@ -37,24 +37,37 @@ export default function DashboardPage() {
   const accountNames = accounts.filter(acc => acc.subtype === 'credit card').map(acc => acc.name);
   const categoryCoverage = getCategoryCoverage(accountNames);
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const res = await fetch('/api/plaid/transactions');
-        const data = await res.json();
-        if (data.transactions) {
-          setTransactions(data.transactions);
-        }
-        if (data.accounts) {
-          setAccounts(data.accounts);
-        }
-      } catch (error) {
-        console.error("Failed to fetch transactions", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchTransactions = async (forceRefresh = false) => {
+    setLoading(true);
+    try {
+      const cacheKey = 'scout_transactions_cache';
+      const cachedData = localStorage.getItem(cacheKey);
 
+      if (!forceRefresh && cachedData) {
+        const parsed = JSON.parse(cachedData);
+        setTransactions(parsed.transactions || []);
+        setAccounts(parsed.accounts || []);
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch('/api/plaid/transactions');
+      const data = await res.json();
+      
+      if (res.ok) {
+        setTransactions(data.transactions || []);
+        setAccounts(data.accounts || []);
+        // Save to cache
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch transactions", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchTransactions();
   }, []);
 
