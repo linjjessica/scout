@@ -101,17 +101,27 @@ export async function GET() {
       for (const inst of institutions) {
         const acc = inst.accounts.find((a: any) => a.account_id === tx.account_id);
         if (acc) {
-          // Create a descriptive name: "Chase - Freedom Unlimited" or just "Discover it chrome"
+          // Create a highly descriptive name: "Chase - Freedom Unlimited" or "Discover it chrome ... 1234"
           const instName = inst.institution.name;
-          const accName = acc.name;
+          const officialName = acc.official_name;
+          const simpleName = acc.name;
+          const mask = acc.mask;
           
-          if (accName && accName.toLowerCase().includes(instName.toLowerCase())) {
-            accountName = accName; // Already contains bank name, e.g. "Discover it chrome"
-          } else if (accName) {
-            accountName = `${instName} - ${accName}`; // e.g. "Wells Fargo - Checking"
-          } else {
-            accountName = instName;
+          // Determine the most descriptive base name
+          let bestName = (officialName && officialName.length > simpleName.length) ? officialName : simpleName;
+          
+          // If the name is generic (e.g. "CREDIT CARD"), use the bank name
+          if (bestName.toUpperCase() === 'CREDIT CARD' || bestName.toUpperCase() === 'CHECKING' || bestName.length < 3) {
+            bestName = instName;
           }
+          
+          // Ensure bank name is included for context if not already there
+          if (!bestName.toLowerCase().includes(instName.toLowerCase())) {
+            bestName = `${instName} - ${bestName}`;
+          }
+          
+          // Append mask for disambiguation
+          accountName = mask ? `${bestName} .... ${mask}` : bestName;
           break;
         }
       }
