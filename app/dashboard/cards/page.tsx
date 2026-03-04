@@ -368,9 +368,9 @@ export default function CustomCardsPage() {
            <div className="grid gap-8">
              {institutions.map((inst: any, idx: number) => (
                <div key={idx} className="bg-white/40 border border-white/60 rounded-[2rem] overflow-hidden shadow-sm transition-all hover:shadow-md hover:bg-white/50">
-                 <div className="p-8 border-b border-black/5 flex items-center gap-5 bg-white/30">
+                 <div className="p-8 border-b border-neutral-200 flex items-center gap-5 bg-white/30">
                    {inst.institution.logo ? (
-                     <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center p-2 shadow-sm border border-black/5 overflow-hidden">
+                     <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center p-2 shadow-sm border border-neutral-200 overflow-hidden">
                        <img src={`data:image/png;base64,${inst.institution.logo}`} alt={inst.institution.name} className="w-full h-full object-contain" />
                      </div>
                    ) : (
@@ -386,7 +386,7 @@ export default function CustomCardsPage() {
                  <div className="p-4 sm:p-8">
                    <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-6">
                      {inst.accounts.map((acc: any, i: number) => (
-                       <div key={i} className="bg-white/60 p-6 rounded-2xl border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-all hover:-translate-y-1 group">
+                       <div key={i} className="bg-white p-6 rounded-2xl border-2 border-neutral-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-all hover:-translate-y-1 group">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex items-center gap-4 flex-1 min-w-0">
                               <div className={cn(
@@ -433,7 +433,7 @@ export default function CustomCardsPage() {
                             )}
                           </div>
                           
-                          <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
+                          <div className="mt-4 pt-4 border-t border-neutral-200 flex items-center justify-between">
                             <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Available Balance</p>
                             <div className="flex items-center gap-4">
                               <p className="font-semibold text-neutral-900 tabular-nums">
@@ -454,7 +454,7 @@ export default function CustomCardsPage() {
                             const dbCard = findDBProps(lookupName, allCardsList);
                             if (!dbCard) {
                               return (
-                                <div className="mt-4 pt-4 border-t border-black/5">
+                                <div className="mt-4 pt-4 border-t border-neutral-200">
                                   <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">Card information not found</p>
                                 </div>
                               );
@@ -464,7 +464,7 @@ export default function CustomCardsPage() {
                               ? [...cats, ['DEFAULT', dbCard.defaultRate]]
                               : [['DEFAULT', dbCard.defaultRate]];
                             return (
-                              <div className="mt-4 pt-4 border-t border-black/5 flex flex-wrap gap-2">
+                              <div className="mt-4 pt-4 border-t border-neutral-200 flex flex-wrap gap-2">
                                 {cats.map(([cat, rate]) => {
                                   const style = getCategoryStyle(cat);
                                   const Icon = style.icon;
