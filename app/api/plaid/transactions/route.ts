@@ -85,8 +85,18 @@ export async function GET() {
     }
   }
 
-  // Analyze transactions
+  // Analyze transactions and attach account names
   const analyzedTransactions = transactions.map((tx: any) => {
+      // Find the account name for this transaction
+      let accountName = 'Unknown Account';
+      for (const inst of institutions) {
+        const acc = inst.accounts.find((a: any) => a.account_id === tx.account_id);
+        if (acc) {
+          accountName = acc.name;
+          break;
+        }
+      }
+
       // Plaid provides categories in a few ways. We prefer personal_finance_category.primary
       // then fallback to the legacy category array, then 'General'.
       let displayCategory = 'General';
@@ -103,6 +113,7 @@ export async function GET() {
 
       return {
         ...tx,
+        accountName,
         // Override the legacy category array so the frontend logic works seamlessly
         category: [displayCategory],
         analysis: analyzeTransaction(tx),

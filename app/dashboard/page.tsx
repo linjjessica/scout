@@ -166,20 +166,24 @@ export default function DashboardPage() {
 
                  return (
                    <div key={i} className="py-4 flex items-center justify-between group">
-                      <div className="flex items-center gap-4">
-                         <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shadow-sm border group-hover:scale-105 transition-transform duration-300", cache.color)}>
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                         <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shadow-sm border group-hover:scale-105 transition-transform duration-300 flex-shrink-0", cache.color)}>
                             <IconComponent className="w-5 h-5" /> 
                          </div>
-                         <div>
-                            <h3 className="font-semibold text-black tracking-tight">{tx.name || tx.merchant_name}</h3>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs text-neutral-500">{tx.date}</span>
+                         <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-black tracking-tight truncate max-w-[180px] sm:max-w-xs">{tx.name || tx.merchant_name}</h3>
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                              <span className="text-[10px] text-neutral-500 font-medium">{tx.date}</span>
                               <span className="w-1 h-1 rounded-full bg-neutral-300"></span>
+                              <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest bg-neutral-50 px-1.5 py-0.5 rounded border border-black/5">
+                                {tx.accountName}
+                              </span>
+                              <span className="sm:inline hidden w-1 h-1 rounded-full bg-neutral-300"></span>
                               <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-widest">{MainCategory}</span>
                             </div>
                          </div>
                       </div>
-                      <p className="font-semibold text-black tracking-tight">-${tx.amount.toFixed(2)}</p>
+                      <p className="font-semibold text-black tracking-tight flex-shrink-0 ml-4">-${tx.amount.toFixed(2)}</p>
                    </div>
                  );
                })}
