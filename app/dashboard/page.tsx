@@ -20,29 +20,9 @@ export default function DashboardPage() {
   const accountNames = creditCards.map((acc: any) => acc.name);
   const categoryCoverage = getCategoryCoverage(accountNames);
 
-  const fetchTransactions = async (forceRefresh = false) => {
+  const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const cacheKey = 'scout_transactions_cache';
-      const cachedData = localStorage.getItem(cacheKey);
-
-      if (!forceRefresh && cachedData) {
-        const parsed = JSON.parse(cachedData);
-        setTransactions(parsed.transactions || []);
-        
-        if (parsed.institutions) {
-          setInstitutions(parsed.institutions);
-        } else if (parsed.accounts) {
-          // Migration: Map old flat accounts to a generic institution
-          setInstitutions([{ 
-            institution: { name: 'Linked Accounts', logo: null }, 
-            accounts: parsed.accounts 
-          }]);
-        }
-        setLoading(false);
-        return;
-      }
-
       const res = await fetch('/api/plaid/transactions');
       const data = await res.json();
       
@@ -56,8 +36,6 @@ export default function DashboardPage() {
             accounts: data.accounts 
           }]);
         }
-        // Save to cache
-        localStorage.setItem(cacheKey, JSON.stringify(data));
       }
     } catch (error) {
       console.error("Failed to fetch transactions", error);

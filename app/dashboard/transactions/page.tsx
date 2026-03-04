@@ -28,20 +28,9 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTransactions = async (forceRefresh = false) => {
+  const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const cacheKey = 'scout_transactions_cache';
-      const cachedData = localStorage.getItem(cacheKey);
-
-      if (!forceRefresh && cachedData) {
-        const parsed = JSON.parse(cachedData);
-        setTransactions(parsed.transactions || []);
-        // The transactions page only needs transactions, but we can set the whole cache
-        setLoading(false);
-        return;
-      }
-
       const res = await fetch('/api/plaid/transactions');
       const data = await res.json();
       
@@ -49,7 +38,6 @@ export default function TransactionsPage() {
         if (data.transactions) {
           setTransactions(data.transactions);
         }
-        localStorage.setItem(cacheKey, JSON.stringify(data));
       }
     } catch (error) {
       console.error("Failed to fetch transactions", error);
