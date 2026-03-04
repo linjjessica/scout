@@ -87,7 +87,9 @@ export async function GET() {
 
   // Collect all user credit card names for personalized analysis
   const userCardNames = institutions.flatMap(inst => 
-    inst.accounts.filter((acc: any) => acc.subtype === 'credit card').map((acc: any) => acc.name)
+    inst.accounts
+      .filter((acc: any) => acc.type === 'credit' || acc.subtype === 'credit card')
+      .map((acc: any) => acc.name)
   );
 
   // Analyze transactions and attach account names

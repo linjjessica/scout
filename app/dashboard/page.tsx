@@ -199,7 +199,20 @@ export default function DashboardPage() {
                                 <span>Use {tx.analysis?.optimalCard}</span>
                              </div>
                            )}
-                           <p className="text-sm font-semibold text-black tabular-nums tracking-tight">-${tx.amount.toFixed(2)}</p>
+                           <div className="text-right">
+                             <p className="text-sm font-semibold text-black tabular-nums tracking-tight">-${(tx.amount || 0).toFixed(2)}</p>
+                             {tx.analysis && (
+                               <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-tighter mt-0.5">
+                                 {tx.analysis.isOptimized ? (
+                                   `${((tx.analysis.rate || 0) * 100).toFixed(0)}% Earned`
+                                 ) : (
+                                   <span className="text-amber-600/70">
+                                     {((tx.analysis.currentRate || 0) * 100).toFixed(0)}% Earned • {((tx.analysis.rate || 0) * 100).toFixed(0)}% Available
+                                   </span>
+                                 )}
+                               </p>
+                             )}
+                           </div>
                        </div>
                     </div>
                  );

@@ -98,39 +98,42 @@ const CARDS: CardRule[] = [
   },
 ];
 
+// Internal helper to find a card in our database by name (fuzzy)
+function findDBProps(name: string | undefined | null) {
+  if (!name || typeof name !== 'string') return null;
+  const lowerU = name.toLowerCase();
+  
+  return CARDS.find(dbCard => {
+    const lowerDB = dbCard.cardName.toLowerCase();
+    
+    // 1. Direct inclusion
+    if (lowerU.includes(lowerDB) || lowerDB.includes(lowerU)) return true;
+    
+    // 2. Dynamic brand matching
+    const words = lowerDB.split(' ');
+    if (words.length > 0) {
+      const brand = words[0];
+      // Only match brands that are at least 4 chars (Chase, Amex, Discover, etc.)
+      if (brand.length >= 4 && lowerU.includes(brand)) {
+         if (words.length > 1) {
+           const identifier = words[1];
+           // If we have an identifier (like "Gold" or "Chrome"), it counts as a match if either the brand matches
+           // OR both match (more precise). We'll accept brand match as a fallback.
+           if (lowerU.includes(identifier)) return true;
+         }
+         return true; 
+      }
+    }
+    return false;
+  });
+}
+
 export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string) {
   const category = (transaction.category ? transaction.category[0] : 'GENERAL').toUpperCase().replace(/_/g, ' ');
   let bestCard = null;
-  let maxRate = 0.01;
+  let maxRate = -1;
 
-  // Helper to find a card in our database by name (fuzzy)
-  const findDBProps = (name: string) => {
-    if (!name || typeof name !== 'string') return null;
-    const lowerU = name.toLowerCase();
-    
-    return CARDS.find(dbCard => {
-      const lowerDB = dbCard.cardName.toLowerCase();
-      
-      // 1. Direct inclusion
-      if (lowerU.includes(lowerDB) || lowerDB.includes(lowerU)) return true;
-      
-      // 2. Dynamic brand matching
-      const words = lowerDB.split(' ');
-      if (words.length > 0) {
-        const brand = words[0];
-        if (brand.length >= 4 && lowerU.includes(brand)) {
-           if (words.length > 1) {
-             const identifier = words[1];
-             if (lowerU.includes(identifier)) return true;
-           }
-           return true; 
-        }
-      }
-      return false;
-    });
-  };
-
-  // STRICTLY limit to user's cards if they are provided
+  // STRICTLY limit to user's cards if they are recognized
   let cardsToConsider: CardRule[] = [];
   if (userCardNames && userCardNames.length > 0) {
     cardsToConsider = CARDS.filter(dbCard => 
@@ -139,8 +142,7 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
   }
 
   // If we found recognized cards in the user's wallet, use ONLY those.
-  // Otherwise, if the user has NO recognized cards, we'll suggest from our whole DB
-  // but label it clearly as a "Standard Card" recommendation if it's not theirs.
+  // This prevents suggesting "Citi" if the user has "Discover" + "Chase".
   const usingUserPortfolio = cardsToConsider.length > 0;
   if (!usingUserPortfolio) {
     cardsToConsider = CARDS;
@@ -160,7 +162,7 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
 
   // Calculate what the user actually earned
   let currentRate = 0.01;
-  const usedDBProps = usedCardName ? findDBProps(usedCardName) : null;
+  const usedDBProps = findDBProps(usedCardName);
   if (usedDBProps) {
      const matchedKey = Object.keys(usedDBProps.categories).find(c => 
        category.includes(c) || c.includes(category)
@@ -190,15 +192,7 @@ export function getCategoryCoverage(userCardNames: string[]) {
   return commonCategories.map(cat => {
     // Collect stats for each user card
     const cardStats = userCardNames.map(name => {
-      const lowerN = name.toLowerCase();
-      const dbCard = CARDS.find(c => {
-        const lowerC = c.cardName.toLowerCase();
-        return lowerN.includes(lowerC) || lowerC.includes(lowerN) ||
-               (lowerN.includes('chase') && lowerC.includes('chase')) ||
-               (lowerN.includes('amex') && lowerC.includes('amex')) ||
-               (lowerN.includes('wells fargo') && lowerC.includes('wells fargo')) ||
-               (lowerN.includes('capital one') && lowerC.includes('capital one'));
-      });
+      const dbCard = findDBProps(name);
       
       if (!dbCard) {
         return { name, rate: null };
@@ -235,10 +229,7 @@ export function getBaselineRate(userCardNames: string[]) {
   if (!userCardNames || userCardNames.length === 0) return 0.01;
   
   const userCards = CARDS.filter(dbCard => 
-    userCardNames.some(uName => 
-      uName.toLowerCase().includes(dbCard.cardName.toLowerCase()) || 
-      dbCard.cardName.toLowerCase().includes(uName.toLowerCase())
-    )
+    userCardNames.some(uName => findDBProps(uName)?.cardName === dbCard.cardName)
   );
   
   if (userCards.length === 0) return 0.01;
