@@ -47,16 +47,16 @@ export const CARDS: CardRule[] = [
     },
     defaultRate: 0.015,
   },
-  {
-    cardName: 'Capital One SavorOne',
-    categories: {
-      'FOOD AND DRINK': 0.03,
-      'GROCERIES': 0.03,
-      'ENTERTAINMENT': 0.03,
-      'SERVICE': 0.03, // Often includes Streaming
-    },
-    defaultRate: 0.01,
-  },
+  // {
+  //   cardName: 'Capital One SavorOne',
+  //   categories: {
+  //     'FOOD AND DRINK': 0.03,
+  //     'GROCERIES': 0.03,
+  //     'ENTERTAINMENT': 0.03,
+  //     'SERVICE': 0.03, // Often includes Streaming
+  //   },
+  //   defaultRate: 0.01,
+  // },
   {
     cardName: 'Wells Fargo Autograph',
     categories: {
