@@ -158,7 +158,14 @@ export default function DashboardPage() {
   }, [transactions, datePreset, showCustom, customStart, customEnd]);
 
   // Only count outgoing spending (positive amounts in Plaid = money out)
-  const spendingTxs = filteredTransactions.filter(tx => tx.amount > 0);
+  // Exclude loan payments, transfers - these are internal movements not real spend
+  const NON_SPENDING_KEYWORDS = ['LOAN', 'TRANSFER', 'PAYMENT', 'PAYOFF'];
+  const isRealSpend = (tx: any) => {
+    if (tx.amount <= 0) return false;
+    const cat = (tx.category?.[0] || '').toUpperCase();
+    return !NON_SPENDING_KEYWORDS.some(kw => cat.includes(kw));
+  };
+  const spendingTxs = filteredTransactions.filter(isRealSpend);
   const totalSpend = spendingTxs.reduce((sum, tx) => sum + tx.amount, 0);
 
   // Calculate dynamic baseline based on user's actual cards

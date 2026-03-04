@@ -156,16 +156,24 @@ export default function TransactionsPage() {
   }, [transactions, datePreset, showCustom, customStart, customEnd]);
 
   // --- Summary Stats ---
+  // Exclude payments/transfers - these are internal movements not true spending
+  const NON_SPENDING_KEYWORDS = ['LOAN', 'TRANSFER', 'PAYMENT', 'PAYOFF'];
+  const isRealSpend = (tx: Transaction) => {
+    if (tx.amount <= 0) return false;
+    const cat = (tx.category?.[0] || '').toUpperCase();
+    return !NON_SPENDING_KEYWORDS.some(kw => cat.includes(kw));
+  };
+
   const totalSpent = useMemo(() => 
     filteredTransactions
-      .filter(tx => tx.amount > 0) // positive = money out in Plaid
+      .filter(isRealSpend)
       .reduce((sum, tx) => sum + tx.amount, 0),
     [filteredTransactions]
   );
 
   const rewardsEarned = useMemo(() =>
     filteredTransactions
-      .filter(tx => tx.amount > 0)
+      .filter(isRealSpend)
       .reduce((sum, tx) => sum + (tx.amount * (tx.analysis?.currentRate || 0)), 0),
     [filteredTransactions]
   );
@@ -250,7 +258,7 @@ export default function TransactionsPage() {
         <div className="apple-glass rounded-2xl px-6 py-5">
           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Total Spent</p>
           <p className="text-3xl font-semibold text-black tabular-nums tracking-tight">${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-          <p className="text-[10px] text-neutral-400 mt-1">{filteredTransactions.filter(t => t.amount > 0).length} transactions</p>
+          <p className="text-[10px] text-neutral-400 mt-1">{filteredTransactions.filter(isRealSpend).length} transactions</p>
         </div>
         <div className="apple-glass rounded-2xl px-6 py-5">
           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Rewards Earned</p>
