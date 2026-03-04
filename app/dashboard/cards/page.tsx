@@ -419,8 +419,8 @@ export default function CustomCardsPage() {
                                   <h4 className="font-semibold text-neutral-900 tracking-tight truncate">
                                     {accountMappings[acc.account_id] || acc.name}
                                   </h4>
-                                  <button onClick={() => handleInlineEditStart(acc)} className="text-[9px] font-bold text-neutral-400 hover:text-neutral-900 uppercase tracking-widest px-1.5 py-0.5 rounded bg-neutral-100/50 hover:bg-neutral-200 transition-all border border-neutral-200/50 hover:border-neutral-300">
-                                    Edit Mapping
+                                  <button onClick={() => handleInlineEditStart(acc)} className="text-[9px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2 py-1 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex items-center gap-1">
+                                    Edit Card Name
                                   </button>
                                 </div>
                               )}
@@ -437,7 +437,7 @@ export default function CustomCardsPage() {
                               </p>
                               <button 
                                 onClick={() => handleEditBenefits(acc)}
-                                className="text-[10px] font-semibold text-neutral-500 hover:text-black uppercase tracking-widest px-2 py-1 rounded bg-neutral-100/50 hover:bg-neutral-200/50 transition-colors"
+                                className="text-[10px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex items-center gap-1"
                               >
                                 Edit Benefits
                               </button>
