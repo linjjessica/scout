@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
-import { CreditCard, Plus, Trash2, Save, X, Landmark } from "lucide-react";
+import { CreditCard, Plus, Trash2, Save, X, Landmark, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CardRule, CARDS, findDBProps } from "@/lib/analysis";
 import { getCategoryStyle } from "@/lib/categories";
@@ -481,97 +481,103 @@ export default function CustomCardsPage() {
                             </div>
                           </div>
                           {/* Card Benefits Section */}
-                          {acc.subtype === 'credit card' && (
+                          {acc.subtype === 'credit card' ? (
                             inlineEditingBenefitsAccountId === acc.account_id ? (
-                            <div className="mt-4 pt-4 border-t border-neutral-200">
-                              <div className="flex items-center justify-between mb-3">
-                                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Edit Benefits: <span className="text-neutral-900">{inlineBenefitsCardName}</span></p>
-                                <div className="flex items-center gap-2">
-                                  <button onClick={handleInlineBenefitsSave} className="px-3 py-1.5 bg-neutral-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-md hover:bg-neutral-800 transition-colors flex items-center gap-1.5 shadow-sm">
-                                    <Save className="w-3.5 h-3.5" /> Save
-                                  </button>
-                                  <button onClick={() => setInlineEditingBenefitsAccountId(null)} className="p-1 border border-neutral-200 bg-white text-neutral-500 rounded-md hover:bg-neutral-50 shadow-sm transition-colors">
-                                    <X className="w-4 h-4" />
-                                  </button>
+                              <div className="mt-4 pt-4 border-t border-neutral-200">
+                                <div className="flex items-center justify-between mb-3">
+                                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Edit Benefits: <span className="text-neutral-900">{inlineBenefitsCardName}</span></p>
+                                  <div className="flex items-center gap-2">
+                                    <button onClick={handleInlineBenefitsSave} className="px-3 py-1.5 bg-neutral-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-md hover:bg-neutral-800 transition-colors flex items-center gap-1.5 shadow-sm">
+                                      <Save className="w-3.5 h-3.5" /> Save
+                                    </button>
+                                    <button onClick={() => setInlineEditingBenefitsAccountId(null)} className="p-1 border border-neutral-200 bg-white text-neutral-500 rounded-md hover:bg-neutral-50 shadow-sm transition-colors">
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="space-y-3 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
-                                {inlineBenefitsCategories.map((cat, idx) => (
-                                  <div key={idx} className="flex items-center gap-2">
-                                    <select 
-                                      value={cat.name}
-                                      onChange={(e) => updateInlineCategory(idx, 'name', e.target.value)}
-                                      className="flex-1 bg-white border border-neutral-200 rounded-md px-2 py-1.5 text-[10px] uppercase font-bold tracking-widest text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-200 shadow-sm"
-                                    >
-                                      {COMMON_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                    <div className="flex items-center gap-1">
+                                <div className="space-y-3 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+                                  {inlineBenefitsCategories.map((cat, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <select 
+                                        value={cat.name}
+                                        onChange={(e) => updateInlineCategory(idx, 'name', e.target.value)}
+                                        className="flex-1 bg-white border border-neutral-200 rounded-md px-2 py-1.5 text-[10px] uppercase font-bold tracking-widest text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-200 shadow-sm"
+                                      >
+                                        {COMMON_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                      </select>
+                                      <div className="flex items-center gap-1">
+                                        <input 
+                                          type="number"
+                                          value={cat.rate}
+                                          onChange={(e) => updateInlineCategory(idx, 'rate', e.target.value)}
+                                          className="w-16 bg-white border border-neutral-200 rounded-md px-2 py-1.5 text-xs font-semibold text-center focus:outline-none focus:ring-2 focus:ring-neutral-200 shadow-sm"
+                                        />
+                                        <span className="text-[10px] font-bold text-neutral-400">%</span>
+                                      </div>
+                                      <button onClick={() => removeInlineCategory(idx)} className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors">
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                  <button onClick={addInlineCategory} className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-indigo-50 border border-indigo-100/50 hover:bg-indigo-100 transition-colors">
+                                    <Plus className="w-3.5 h-3.5" /> Add Category
+                                  </button>
+                                  
+                                  <div className="pt-3 border-t border-neutral-200 flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Base Rate (All Else)</span>
+                                    <div className="flex items-center gap-1 mr-8">
                                       <input 
                                         type="number"
-                                        value={cat.rate}
-                                        onChange={(e) => updateInlineCategory(idx, 'rate', e.target.value)}
+                                        value={inlineBenefitsDefaultRate}
+                                        onChange={(e) => setInlineBenefitsDefaultRate(e.target.value)}
                                         className="w-16 bg-white border border-neutral-200 rounded-md px-2 py-1.5 text-xs font-semibold text-center focus:outline-none focus:ring-2 focus:ring-neutral-200 shadow-sm"
                                       />
                                       <span className="text-[10px] font-bold text-neutral-400">%</span>
                                     </div>
-                                    <button onClick={() => removeInlineCategory(idx)} className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors">
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                ))}
-                                <button onClick={addInlineCategory} className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-indigo-50 border border-indigo-100/50 hover:bg-indigo-100 transition-colors">
-                                  <Plus className="w-3.5 h-3.5" /> Add Category
-                                </button>
-                                
-                                <div className="pt-3 border-t border-neutral-200 flex items-center justify-between">
-                                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Base Rate (All Else)</span>
-                                  <div className="flex items-center gap-1 mr-8">
-                                    <input 
-                                      type="number"
-                                      value={inlineBenefitsDefaultRate}
-                                      onChange={(e) => setInlineBenefitsDefaultRate(e.target.value)}
-                                      className="w-16 bg-white border border-neutral-200 rounded-md px-2 py-1.5 text-xs font-semibold text-center focus:outline-none focus:ring-2 focus:ring-neutral-200 shadow-sm"
-                                    />
-                                    <span className="text-[10px] font-bold text-neutral-400">%</span>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ) : (() => {
-                            const allCardsList = [...customCards, ...CARDS];
-                            const lookupName = accountMappings[acc.account_id] || acc.name;
-                            const dbCard = findDBProps(lookupName, allCardsList);
-                            if (!dbCard) {
+                            ) : (() => {
+                              const allCardsList = [...customCards, ...CARDS];
+                              const lookupName = accountMappings[acc.account_id] || acc.name;
+                              const dbCard = findDBProps(lookupName, allCardsList);
+                              if (!dbCard) {
+                                return (
+                                  <div className="mt-4 pt-4 border-t border-neutral-200">
+                                    <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">Card information not found</p>
+                                  </div>
+                                );
+                              }
+                              const cats = Object.entries(dbCard.categories);
+                              const allRates = cats.length > 0
+                                ? [...cats, ['DEFAULT', dbCard.defaultRate]]
+                                : [['DEFAULT', dbCard.defaultRate]];
                               return (
-                                <div className="mt-4 pt-4 border-t border-neutral-200">
-                                  <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">Card information not found</p>
+                                <div className="mt-4 pt-4 border-t border-neutral-200 flex flex-wrap gap-2">
+                                  {cats.map(([cat, rate]) => {
+                                    const style = getCategoryStyle(cat);
+                                    const Icon = style.icon;
+                                    return (
+                                      <div key={cat} className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border", style.color)}>
+                                        <Icon className="w-3 h-3 flex-shrink-0" />
+                                        <span>{cat.replace('AND', '&')}</span>
+                                        <span className="text-emerald-600">{((rate as number) * 100).toFixed(0)}%</span>
+                                      </div>
+                                    );
+                                  })}
+                                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border bg-neutral-50 text-neutral-500 border-neutral-200">
+                                    <span>All else</span>
+                                    <span className="text-neutral-600">{((dbCard.defaultRate as number) * 100).toFixed(0)}%</span>
+                                  </div>
                                 </div>
                               );
-                            }
-                            const cats = Object.entries(dbCard.categories);
-                            const allRates = cats.length > 0
-                              ? [...cats, ['DEFAULT', dbCard.defaultRate]]
-                              : [['DEFAULT', dbCard.defaultRate]];
-                            return (
-                              <div className="mt-4 pt-4 border-t border-neutral-200 flex flex-wrap gap-2">
-                                {cats.map(([cat, rate]) => {
-                                  const style = getCategoryStyle(cat);
-                                  const Icon = style.icon;
-                                  return (
-                                    <div key={cat} className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border", style.color)}>
-                                      <Icon className="w-3 h-3 flex-shrink-0" />
-                                      <span>{cat.replace('AND', '&')}</span>
-                                      <span className="text-emerald-600">{((rate as number) * 100).toFixed(0)}%</span>
-                                    </div>
-                                  );
-                                })}
-                                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border bg-neutral-50 text-neutral-500 border-neutral-200">
-                                  <span>All else</span>
-                                  <span className="text-neutral-600">{((dbCard.defaultRate as number) * 100).toFixed(0)}%</span>
-                                </div>
-                              </div>
-                            );
-                          })()
+                            })()
+                          ) : (
+                            <div className="mt-4 pt-4 border-t border-neutral-200">
+                              <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest italic flex items-center gap-2">
+                                <AlertCircle className="w-3 h-3" /> No rewards for {acc.subtype} account
+                              </p>
+                            </div>
                           )}
                         </div>
                      ))}
