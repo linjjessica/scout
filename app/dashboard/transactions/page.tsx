@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ShoppingBag, RefreshCw, BadgeDollarSign, DollarSign, ArrowUpRight, ArrowDownLeft, AlertCircle, Landmark, CheckCircle, Chrome } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCategoryStyle, formatCategoryName } from "@/lib/categories";
+import { analyzeTransaction, CardRule } from "@/lib/analysis";
 
 interface Transaction {
   transaction_id: string;
@@ -33,10 +34,19 @@ export default function TransactionsPage() {
     try {
       const cacheKey = 'scout_transactions_cache';
       const cachedData = localStorage.getItem(cacheKey);
+      
+      const customCardsData = localStorage.getItem('scout_custom_cards');
+      const customCards: CardRule[] = customCardsData ? JSON.parse(customCardsData) : [];
 
       if (!forceRefresh && cachedData) {
         const parsed = JSON.parse(cachedData);
-        setTransactions(parsed.transactions || []);
+        if (parsed.transactions) {
+           const analyzed = parsed.transactions.map((tx: any) => ({
+             ...tx,
+             analysis: analyzeTransaction(tx, parsed.userCardNames, tx.accountName, tx.scoutDebugIsCreditCard, customCards)
+           }));
+           setTransactions(analyzed);
+        }
         setLoading(false);
         return;
       }
@@ -46,7 +56,11 @@ export default function TransactionsPage() {
       
       if (res.ok) {
         if (data.transactions) {
-          setTransactions(data.transactions);
+          const analyzed = data.transactions.map((tx: any) => ({
+            ...tx,
+            analysis: analyzeTransaction(tx, data.userCardNames, tx.accountName, tx.scoutDebugIsCreditCard, customCards)
+          }));
+          setTransactions(analyzed);
         }
         localStorage.setItem(cacheKey, JSON.stringify(data));
       }

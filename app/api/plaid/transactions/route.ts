@@ -162,7 +162,6 @@ export async function GET() {
         category: [displayCategory],
         scoutDebugField: "DEPLOYMENT_VERIFIED_V4",
         scoutDebugIsCreditCard: isCreditCard,
-        analysis: analyzeTransaction(txWithCategory, userCardNames, accountName, isCreditCard),
       };
   }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -170,6 +169,7 @@ export async function GET() {
     { 
       transactions: analyzedTransactions, 
       institutions,
+      userCardNames,
       serverTimestamp: Date.now()
     }, 
     { 

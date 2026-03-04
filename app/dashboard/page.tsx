@@ -5,12 +5,14 @@ import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
 import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign, LayoutGrid, CheckCircle } from "lucide-react";
 import { getCategoryStyle, formatCategoryName } from "@/lib/categories";
-import { getCategoryCoverage, getBaselineRate } from "@/lib/analysis";
+import { getCategoryCoverage, getBaselineRate, analyzeTransaction, CardRule } from "@/lib/analysis";
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [customCards, setCustomCards] = useState<CardRule[]>([]);
 
   // Derive flat accounts list for existing logic
   const allAccounts = institutions.flatMap(inst => inst.accounts || []);
@@ -18,7 +20,7 @@ export default function DashboardPage() {
   
   // calculate coverage based on accounts
   const accountNames = creditCards.map((acc: any) => acc.name);
-  const categoryCoverage = getCategoryCoverage(accountNames);
+  const categoryCoverage = getCategoryCoverage(accountNames, customCards);
 
   const fetchTransactions = async (forceRefresh = false) => {
     setLoading(true);
@@ -26,9 +28,19 @@ export default function DashboardPage() {
       const cacheKey = 'scout_transactions_cache';
       const cachedData = localStorage.getItem(cacheKey);
 
+      const customCardsData = localStorage.getItem('scout_custom_cards');
+      const loadedCustomCards = customCardsData ? JSON.parse(customCardsData) : [];
+      setCustomCards(loadedCustomCards);
+
       if (!forceRefresh && cachedData) {
         const parsed = JSON.parse(cachedData);
-        setTransactions(parsed.transactions || []);
+        if (parsed.transactions) {
+           const analyzed = parsed.transactions.map((tx: any) => ({
+             ...tx,
+             analysis: analyzeTransaction(tx, parsed.userCardNames, tx.accountName, tx.scoutDebugIsCreditCard, loadedCustomCards)
+           }));
+           setTransactions(analyzed);
+        }
         
         if (parsed.institutions) {
           setInstitutions(parsed.institutions);
@@ -47,7 +59,13 @@ export default function DashboardPage() {
       const data = await res.json();
       
       if (res.ok) {
-        setTransactions(data.transactions || []);
+        if (data.transactions) {
+           const analyzed = data.transactions.map((tx: any) => ({
+             ...tx,
+             analysis: analyzeTransaction(tx, data.userCardNames, tx.accountName, tx.scoutDebugIsCreditCard, loadedCustomCards)
+           }));
+           setTransactions(analyzed);
+        }
         if (data.institutions) {
           setInstitutions(data.institutions);
         } else if (data.accounts) {
@@ -72,7 +90,7 @@ export default function DashboardPage() {
   const totalSpend = transactions.reduce((sum, tx) => sum + tx.amount, 0);
 
   // Calculate dynamic baseline based on user's actual cards
-  const baselineRate = getBaselineRate(accountNames);
+  const baselineRate = getBaselineRate(accountNames, customCards);
   const cashbackEarned = transactions.reduce((sum, tx) => sum + (tx.amount * baselineRate), 0);
   const missedRewards = transactions.reduce((sum, tx) => sum + (tx.amount * Math.max(0, (tx.analysis?.rate || baselineRate) - baselineRate)), 0);
   

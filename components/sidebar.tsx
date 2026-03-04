@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CreditCard, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, CreditCard, Settings, LogOut, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "Transactions", href: "/dashboard/transactions", icon: CreditCard },
+  { name: "My Cards", href: "/dashboard/cards", icon: Wallet },
   { name: "Subscription", href: "/dashboard/subscription", icon: Settings },
 ];
 

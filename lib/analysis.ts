@@ -4,7 +4,7 @@ export interface CardRule {
   defaultRate: number;
 }
 
-const CARDS: CardRule[] = [
+export const CARDS: CardRule[] = [
   {
     cardName: 'Amex Gold',
     categories: {
@@ -99,11 +99,11 @@ const CARDS: CardRule[] = [
 ];
 
 // Internal helper to find a card in our database by name (fuzzy)
-function findDBProps(name: string | undefined | null) {
+export function findDBProps(name: string | undefined | null, allCards: CardRule[] = CARDS) {
   if (!name || typeof name !== 'string') return null;
   const lowerU = name.toLowerCase();
   
-  return CARDS.find(dbCard => {
+  return allCards.find(dbCard => {
     const lowerDB = dbCard.cardName.toLowerCase();
     
     // 1. Direct inclusion
@@ -128,10 +128,12 @@ function findDBProps(name: string | undefined | null) {
   });
 }
 
-export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string, isCreditCard?: boolean) {
+export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string, isCreditCard?: boolean, customCards: CardRule[] = []) {
   const categoryRaw = transaction.category ? transaction.category : ['GENERAL'];
   const categoryStr = categoryRaw.join(' ').toUpperCase();
   const category = (transaction.category ? transaction.category[0] : 'GENERAL').toUpperCase().replace(/_/g, ' ');
+
+  const ALL_CARDS = [...customCards, ...CARDS];
   
   let bestCard = null;
   let maxRate = -1;
@@ -150,8 +152,8 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
   // STRICTLY limit to user's cards if they are recognized
   let cardsToConsider: CardRule[] = [];
   if (userCardNames && userCardNames.length > 0) {
-    cardsToConsider = CARDS.filter(dbCard => 
-      userCardNames.some(uName => findDBProps(uName)?.cardName === dbCard.cardName)
+    cardsToConsider = ALL_CARDS.filter(dbCard => 
+      userCardNames.some(uName => findDBProps(uName, ALL_CARDS)?.cardName === dbCard.cardName)
     );
   }
 
@@ -159,7 +161,7 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
   // This prevents suggesting "Plaid Business Credit Card" if the user only has Chase.
   const usingUserPortfolio = cardsToConsider.length > 0;
   if (!usingUserPortfolio) {
-    cardsToConsider = CARDS;
+    cardsToConsider = ALL_CARDS;
   }
 
   cardsToConsider.forEach((card) => {
@@ -177,8 +179,7 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
   // Calculate what the user actually earned
   let currentRate = 0.0;
   // Don't look up DB props if we explicitly know it's not a credit card
-  console.log(`[Analysis] Assessing transaction for ${usedCardName} - isCreditCard: ${isCreditCard}`);
-  const usedDBProps = isCreditCard === false ? null : findDBProps(usedCardName);
+  const usedDBProps = isCreditCard === false ? null : findDBProps(usedCardName, ALL_CARDS);
   
   if (usedDBProps) {
      const matchedKey = Object.keys(usedDBProps.categories).find(c => 
@@ -203,16 +204,18 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
   };
 }
 
-export function getCategoryCoverage(userCardNames: string[]) {
+export function getCategoryCoverage(userCardNames: string[], customCards: CardRule[] = []) {
   const commonCategories = [
     'FOOD AND DRINK', 'GROCERIES', 'TRAVEL', 
     'GAS STATION', 'SERVICE', 'SHOPS', 'ENTERTAINMENT'
   ];
   
+  const ALL_CARDS = [...customCards, ...CARDS];
+
   return commonCategories.map(cat => {
     // Collect stats for each user card
     const cardStats = userCardNames.map(name => {
-      const dbCard = findDBProps(name);
+      const dbCard = findDBProps(name, ALL_CARDS);
       
       if (!dbCard) {
         return { name, rate: null };
@@ -245,11 +248,12 @@ export function getCategoryCoverage(userCardNames: string[]) {
     };
   });
 }
-export function getBaselineRate(userCardNames: string[]) {
+export function getBaselineRate(userCardNames: string[], customCards: CardRule[] = []) {
   if (!userCardNames || userCardNames.length === 0) return 0.01;
+  const ALL_CARDS = [...customCards, ...CARDS];
   
-  const userCards = CARDS.filter(dbCard => 
-    userCardNames.some(uName => findDBProps(uName)?.cardName === dbCard.cardName)
+  const userCards = ALL_CARDS.filter(dbCard => 
+    userCardNames.some(uName => findDBProps(uName, ALL_CARDS)?.cardName === dbCard.cardName)
   );
   
   if (userCards.length === 0) return 0.01;
