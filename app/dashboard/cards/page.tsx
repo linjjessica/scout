@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
-import { CreditCard, Plus, Trash2, Save, X, Landmark, AlertCircle } from "lucide-react";
+import { CreditCard, Plus, Trash2, Save, X, Landmark, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CardRule, CARDS, findDBProps } from "@/lib/analysis";
 import { getCategoryStyle } from "@/lib/categories";
@@ -46,6 +46,8 @@ export default function CustomCardsPage() {
   const [inlineBenefitsCardName, setInlineBenefitsCardName] = useState("");
   const [inlineBenefitsDefaultRate, setInlineBenefitsDefaultRate] = useState("1");
   const [inlineBenefitsCategories, setInlineBenefitsCategories] = useState<{name: string, rate: string}[]>([]);
+
+  const [isAiAnalyzingAccountId, setIsAiAnalyzingAccountId] = useState<string | null>(null);
 
   useEffect(() => {
     const customCardsData = localStorage.getItem('scout_custom_cards');
@@ -213,6 +215,38 @@ export default function CustomCardsPage() {
   };
   const removeInlineCategory = (index: number) => {
     setInlineBenefitsCategories(inlineBenefitsCategories.filter((_, i) => i !== index));
+  };
+
+  const handleAiLookup = async (account: any) => {
+    const lookupName = accountMappings[account.account_id] || account.name;
+    setIsAiAnalyzingAccountId(account.account_id);
+    try {
+      const res = await fetch('/api/ai/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardName: lookupName }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      // Populate inline edit state with AI results
+      setInlineEditingBenefitsAccountId(account.account_id);
+      setInlineBenefitsCardName(data.cardName || lookupName);
+      setInlineBenefitsDefaultRate(((data.defaultRate || 0.01) * 100).toString());
+      
+      const mappedCats = Object.entries(data.categories || {}).map(([name, rate]) => ({
+        name: name as string,
+        rate: ((rate as number) * 100).toString()
+      }));
+      setInlineBenefitsCategories(mappedCats);
+      
+      // We don't need alert here if the UI updates to show the new data
+    } catch (error: any) {
+      console.error("AI Lookup failed:", error);
+      alert("Scout AI couldn't find benefits for this card. You can still add them manually!");
+    } finally {
+      setIsAiAnalyzingAccountId(null);
+    }
   };
 
 
@@ -543,8 +577,22 @@ export default function CustomCardsPage() {
                               const dbCard = findDBProps(lookupName, allCardsList);
                               if (!dbCard) {
                                 return (
-                                  <div className="mt-4 pt-4 border-t border-neutral-200">
-                                    <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">Card information not found</p>
+                                  <div className="mt-4 pt-4 border-t border-neutral-200 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">Card information not found</p>
+                                      <button 
+                                        onClick={() => handleAiLookup(acc)}
+                                        disabled={isAiAnalyzingAccountId !== null}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-indigo-100 transition-all disabled:opacity-50"
+                                      >
+                                        {isAiAnalyzingAccountId === acc.account_id ? (
+                                          <Loader2 className="w-3 h-3 animate-spin" />
+                                        ) : (
+                                          <Sparkles className="w-3 h-3" />
+                                        )}
+                                        {isAiAnalyzingAccountId === acc.account_id ? 'Analyzing...' : 'Look up with Scout AI'}
+                                      </button>
+                                    </div>
                                   </div>
                                 );
                               }
