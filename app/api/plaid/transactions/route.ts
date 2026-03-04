@@ -115,6 +115,8 @@ export async function GET() {
           break;
         }
       }
+      
+      console.log(`[Transaction] ${tx.name || tx.merchant_name} -> Account: ${accountName}`);
 
       // Plaid provides categories in a few ways. We prefer personal_finance_category.primary
       // then fallback to the legacy category array, then 'GENERAL'.
