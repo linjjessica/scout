@@ -88,6 +88,14 @@ const CARDS: CardRule[] = [
     },
     defaultRate: 0.01,
   },
+  {
+    cardName: 'Discover it Chrome',
+    categories: {
+      'Food and Drink': 0.02,
+      'Gas Station': 0.02,
+    },
+    defaultRate: 0.01,
+  },
 ];
 
 export function analyzeTransaction(transaction: any) {

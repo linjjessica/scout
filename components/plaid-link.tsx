@@ -27,7 +27,23 @@ export default function PlaidLink() {
     createLinkToken();
   }, []);
 
-  const onSuccess = useCallback<PlaidLinkOnSuccess>(async (public_token) => {
+  const onSuccess = useCallback<PlaidLinkOnSuccess>(async (public_token, metadata) => {
+    // Check if we've already linked this specific institution to prevent duplicate Items
+    const institutionId = metadata.institution?.institution_id;
+    if (institutionId) {
+      const linkedInstitutionsStr = localStorage.getItem('scout_linked_institutions');
+      const linkedInstitutions = linkedInstitutionsStr ? JSON.parse(linkedInstitutionsStr) as string[] : [];
+      
+      if (linkedInstitutions.includes(institutionId)) {
+        alert(`You have already linked ${metadata.institution?.name || 'this institution'}.`);
+        return; // Early return to prevent exchanging the token and using up Plaid quota
+      }
+      
+      // Save checking for future links
+      linkedInstitutions.push(institutionId);
+      localStorage.setItem('scout_linked_institutions', JSON.stringify(linkedInstitutions));
+    }
+
     setLoading(true);
     try {
       await fetch('/api/plaid/exchange_public_token', {
