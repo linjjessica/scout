@@ -91,6 +91,8 @@ export async function GET() {
       .filter((acc: any) => acc.type === 'credit' || acc.subtype === 'credit card')
       .map((acc: any) => acc.name)
   );
+  
+  console.log(`[Wallet] Detected User Cards: ${userCardNames.join(', ')}`);
 
   // Analyze transactions and attach account names
   const analyzedTransactions = transactions.map((tx: any) => {
