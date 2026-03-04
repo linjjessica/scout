@@ -62,9 +62,21 @@ export default function PlaidLink() {
     window.location.href = window.location.pathname;
   }, []);
 
+  const onExit = useCallback((error: any, metadata: any) => {
+    if (error != null) {
+      console.error('Plaid Link Error Detail:', error);
+      console.log('Plaid Link Exit Metadata:', metadata);
+      // Alert only production to surface the code quickly
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        alert(`Plaid Connection Error: ${error.error_message || error.display_message || 'Internal connection error'}\nCode: ${error.error_code}`);
+      }
+    }
+  }, []);
+
   const config: PlaidLinkOptions = {
     token,
     onSuccess,
+    onExit,
     // For OAuth redirect flow: pass the full current URL back to Plaid Link
     ...(isOAuthRedirect && { receivedRedirectUri: window.location.href }),
   };
