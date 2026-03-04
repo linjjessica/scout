@@ -142,7 +142,7 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
   }
 
   // If we found recognized cards in the user's wallet, use ONLY those.
-  // This prevents suggesting "Citi" if the user has "Discover" + "Chase".
+  // This prevents suggesting "Plaid Business Credit Card" if the user only has Chase.
   const usingUserPortfolio = cardsToConsider.length > 0;
   if (!usingUserPortfolio) {
     cardsToConsider = CARDS;

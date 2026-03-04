@@ -111,9 +111,12 @@ export async function GET() {
           // Determine the most descriptive base name
           let bestName = (officialName && officialName.length > simpleName.length) ? officialName : simpleName;
           
+          console.log(`\n[PLAID ACCOUNTS DEBUG] Raw Plaid object for ${instName}:`, JSON.stringify(acc, null, 2));
+
           // If the name is generic (e.g. "CREDIT CARD"), use the bank name
           if (bestName.toUpperCase() === 'CREDIT CARD' || bestName.toUpperCase() === 'CHECKING' || bestName.length < 3) {
-            bestName = instName;
+            // "Chase" + " " + "Credit Card"
+            bestName = `${instName} ${bestName.charAt(0).toUpperCase() + bestName.slice(1).toLowerCase()}`;
           }
           
           // Ensure bank name is included for context if not already there
