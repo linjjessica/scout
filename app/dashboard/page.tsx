@@ -133,7 +133,6 @@ export default function DashboardPage() {
     { label: 'This Month', value: 'this_month' },
     { label: 'Last Month', value: 'last_month' },
     { label: 'Last 3 Mo', value: 'last_3_months' },
-    { label: 'Last 6 Mo', value: 'last_6_months' },
     { label: 'All Time', value: 'all' },
   ];
 
