@@ -56,8 +56,17 @@ export function Sidebar() {
           );
         })}
       </div>
-
-
+      <div className="px-6 pb-8 space-y-3">
+        <div className="rounded-[1.25rem] bg-white/50 border border-neutral-100 p-4 space-y-2.5">
+          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Security & Limits</p>
+          <p className="text-[11px] text-neutral-500 leading-relaxed">
+            Scout does not store any of your data. All account info is saved via cookies — clear them anytime to reset your session.
+          </p>
+          <p className="text-[11px] text-neutral-500 leading-relaxed">
+            Plaid has limited our production access. If syncing or refresh stops working, we may have hit our API limit while pursuing full production access.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

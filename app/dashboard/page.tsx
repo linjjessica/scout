@@ -179,7 +179,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-16 pb-20">
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-5xl font-semibold text-black tracking-tight">
