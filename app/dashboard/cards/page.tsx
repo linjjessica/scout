@@ -387,57 +387,61 @@ export default function CustomCardsPage() {
                    <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-6">
                      {inst.accounts.map((acc: any, i: number) => (
                        <div key={i} className="bg-white/60 p-6 rounded-2xl border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-all hover:-translate-y-1 group">
-                         <div className="flex items-center gap-4">
-                           <div className={cn(
-                             "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110",
-                             acc.subtype === 'credit card' ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"
-                           )}>
-                             {acc.subtype === 'credit card' ? <CreditCard className="w-5 h-5" /> : <Landmark className="w-5 h-5" />}
-                           </div>
-                            <div className="flex-1 min-w-0">
-                              {inlineEditingAccountId === acc.account_id ? (
-                                <div className="flex items-center gap-2">
-                                  <input 
-                                    className="font-semibold text-neutral-900 tracking-tight bg-white border border-neutral-200 rounded px-2 py-1 w-full text-sm focus:outline-none focus:ring-2 focus:ring-neutral-200"
-                                    value={inlineEditValue}
-                                    onChange={(e) => setInlineEditValue(e.target.value)}
-                                    autoFocus
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') handleInlineEditSave(acc.account_id);
-                                      if (e.key === 'Escape') setInlineEditingAccountId(null);
-                                    }}
-                                  />
-                                  <button onClick={() => handleInlineEditSave(acc.account_id)} className="p-1.5 bg-neutral-900 text-white rounded hover:bg-neutral-800 transition-colors">
-                                    <Save className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button onClick={() => setInlineEditingAccountId(null)} className="p-1.5 bg-neutral-100 text-neutral-500 rounded hover:bg-neutral-200 transition-colors">
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2 group/edit">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                              <div className={cn(
+                                "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 flex-shrink-0",
+                                acc.subtype === 'credit card' ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"
+                              )}>
+                                {acc.subtype === 'credit card' ? <CreditCard className="w-5 h-5" /> : <Landmark className="w-5 h-5" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                {inlineEditingAccountId === acc.account_id ? (
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <input 
+                                      className="font-semibold text-neutral-900 tracking-tight bg-white border border-neutral-200 rounded px-2 py-1 w-full text-sm focus:outline-none focus:ring-2 focus:ring-neutral-200"
+                                      value={inlineEditValue}
+                                      onChange={(e) => setInlineEditValue(e.target.value)}
+                                      autoFocus
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleInlineEditSave(acc.account_id);
+                                        if (e.key === 'Escape') setInlineEditingAccountId(null);
+                                      }}
+                                    />
+                                    <button onClick={() => handleInlineEditSave(acc.account_id)} className="p-1.5 bg-neutral-900 text-white rounded hover:bg-neutral-800 transition-colors">
+                                      <Save className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button onClick={() => setInlineEditingAccountId(null)} className="p-1.5 bg-neutral-100 text-neutral-500 rounded hover:bg-neutral-200 transition-colors">
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                ) : (
                                   <h4 className="font-semibold text-neutral-900 tracking-tight truncate">
                                     {accountMappings[acc.account_id] || acc.name}
                                   </h4>
-                                  <button onClick={() => handleInlineEditStart(acc)} className="text-[9px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2 py-1 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex items-center gap-1">
-                                    Edit Card Name
-                                  </button>
-                                </div>
-                              )}
-                              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5 truncate">
-                                {acc.subtype} •••• {acc.mask}
-                              </p>
-                           </div>
-                         </div>
+                                )}
+                                <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5 truncate">
+                                  {acc.subtype} •••• {acc.mask}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {inlineEditingAccountId !== acc.account_id && (
+                              <button onClick={() => handleInlineEditStart(acc)} className="w-[124px] justify-center text-[9px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex flex-shrink-0 items-center">
+                                Edit Card Name
+                              </button>
+                            )}
+                          </div>
+                          
                           <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
                             <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Available Balance</p>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4">
                               <p className="font-semibold text-neutral-900 tabular-nums">
                                 ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
                               </p>
                               <button 
                                 onClick={() => handleEditBenefits(acc)}
-                                className="text-[10px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex items-center gap-1"
+                                className="w-[124px] justify-center text-[10px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex items-center flex-shrink-0"
                               >
                                 Edit Benefits
                               </button>
