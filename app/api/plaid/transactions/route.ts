@@ -85,14 +85,20 @@ export async function GET() {
     }
   }
 
+  // Collect all user credit card names for personalized analysis
+  const userCardNames = institutions.flatMap(inst => 
+    inst.accounts.filter((acc: any) => acc.subtype === 'credit card').map((acc: any) => acc.name)
+  );
+
   // Analyze transactions and attach account names
   const analyzedTransactions = transactions.map((tx: any) => {
       // Find the account name for this transaction
-      let accountName = 'Unknown Account';
+      let accountName = 'Linked Account';
       for (const inst of institutions) {
         const acc = inst.accounts.find((a: any) => a.account_id === tx.account_id);
         if (acc) {
-          accountName = acc.name;
+          // If the name is just a dash or too short, use the institution name
+          accountName = (acc.name && acc.name.length > 1) ? acc.name : inst.institution.name;
           break;
         }
       }
@@ -116,7 +122,7 @@ export async function GET() {
         accountName,
         // Override the legacy category array so the frontend logic works seamlessly
         category: [displayCategory],
-        analysis: analyzeTransaction(tx),
+        analysis: analyzeTransaction(tx, userCardNames),
       };
   }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 

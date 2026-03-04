@@ -99,14 +99,12 @@ export default function TransactionsPage() {
                           <h3 className="font-semibold text-black text-lg tracking-tight uppercase truncate max-w-md sm:max-w-lg lg:max-w-xl">
                             {tx.name || tx.merchant_name}
                           </h3>
-                          <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <span className="text-xs font-semibold text-neutral-500">{tx.date}</span>
-                            <span className="w-1 h-1 rounded-full bg-neutral-300"></span>
-                            <span className="text-xs font-semibold text-neutral-600 uppercase tracking-widest bg-neutral-100 px-2 py-0.5 rounded-md border border-black/5">
+                          <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                            <span className="text-xs font-semibold text-neutral-400">{tx.date}</span>
+                            <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-widest bg-black/[0.03] px-2 py-0.5 rounded-md border border-black/5">
                               {tx.accountName}
                             </span>
-                            <span className="sm:inline hidden w-1 h-1 rounded-full bg-neutral-300"></span>
-                            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-widest">
+                            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">
                               {MainCategory}
                             </span>
                           </div>

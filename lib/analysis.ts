@@ -98,16 +98,36 @@ const CARDS: CardRule[] = [
   },
 ];
 
-export function analyzeTransaction(transaction: any) {
-  const category = transaction.category ? transaction.category[0] : 'General';
+export function analyzeTransaction(transaction: any, userCardNames?: string[]) {
+  const category = (transaction.category ? transaction.category[0] : 'General').toLowerCase();
   let bestCard = null;
   let maxRate = 0;
 
-  CARDS.forEach((card) => {
-    // Simple category matching
-    const rate = Object.keys(card.categories).find(c => category.includes(c))
-      ? card.categories[Object.keys(card.categories).find(c => category.includes(c)) as string]
-      : card.defaultRate;
+  // If user cards are provided, prioritize them. 
+  // Otherwise, use all cards to show what the user *could* be earning (or fallback to user cards if they exist)
+  let cardsToConsider = CARDS;
+  if (userCardNames && userCardNames.length > 0) {
+    cardsToConsider = CARDS.filter(dbCard => 
+      userCardNames.some(uName => 
+        uName.toLowerCase().includes(dbCard.cardName.toLowerCase()) || 
+        dbCard.cardName.toLowerCase().includes(uName.toLowerCase())
+      )
+    );
+    
+    // If none of our DB cards match the user's cards, fall back to all cards so we still show *something* 
+    // but ideally we'd want to know their card's baseline.
+    if (cardsToConsider.length === 0) {
+      cardsToConsider = CARDS;
+    }
+  }
+
+  cardsToConsider.forEach((card) => {
+    // Case-insensitive category matching
+    const matchedKey = Object.keys(card.categories).find(c => 
+      category.includes(c.toLowerCase()) || c.toLowerCase().includes(category)
+    );
+    
+    const rate = matchedKey ? card.categories[matchedKey] : card.defaultRate;
 
     if (rate > maxRate) {
       maxRate = rate;
