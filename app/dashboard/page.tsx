@@ -19,6 +19,7 @@ const categoryIcons: Record<string, CategoryStyle> = {
   'Healthcare': { icon: Zap, color: 'bg-red-50 text-red-600 border-red-100' },
   'Entertainment': { icon: Play, color: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
   'Utilities': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
+  'Rent and Utilities': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
   'Community': { icon: LayoutGrid, color: 'bg-teal-50 text-teal-600 border-teal-100' },
   'Payment': { icon: DollarSign, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
   'Loan Payments': { icon: Landmark, color: 'bg-slate-50 text-slate-600 border-slate-100' },
