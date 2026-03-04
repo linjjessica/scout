@@ -14,12 +14,15 @@ export default function DashboardPage() {
 
   const [customCards, setCustomCards] = useState<CardRule[]>([]);
 
+  const accountMappingsData = typeof window !== 'undefined' ? localStorage.getItem('scout_account_mappings') : null;
+  const accountMappings = accountMappingsData ? JSON.parse(accountMappingsData) : {};
+
   // Derive flat accounts list for existing logic
   const allAccounts = institutions.flatMap(inst => inst.accounts || []);
   const creditCards = allAccounts.filter((acc: any) => acc.subtype === 'credit card');
   
   // calculate coverage based on accounts
-  const accountNames = creditCards.map((acc: any) => acc.name);
+  const accountNames = creditCards.map((acc: any) => accountMappings[acc.account_id] || acc.name);
   const categoryCoverage = getCategoryCoverage(accountNames, customCards);
 
   const fetchTransactions = async (forceRefresh = false) => {
@@ -32,13 +35,28 @@ export default function DashboardPage() {
       const loadedCustomCards = customCardsData ? JSON.parse(customCardsData) : [];
       setCustomCards(loadedCustomCards);
 
+      const getMappedUserCardNames = (institutionsList: any[], fallbackNames: string[]) => {
+        if (!institutionsList) return fallbackNames;
+        const names = new Set<string>();
+        institutionsList.forEach(inst => {
+          inst.accounts.forEach((acc: any) => {
+            names.add(accountMappings[acc.account_id] || acc.name);
+          });
+        });
+        return Array.from(names);
+      };
+
       if (!forceRefresh && cachedData) {
         const parsed = JSON.parse(cachedData);
         if (parsed.transactions) {
-           const analyzed = parsed.transactions.map((tx: any) => ({
-             ...tx,
-             analysis: analyzeTransaction(tx, parsed.userCardNames, tx.accountName, tx.scoutDebugIsCreditCard, loadedCustomCards)
-           }));
+           const mappedUserCardNames = getMappedUserCardNames(parsed.institutions, parsed.userCardNames);
+           const analyzed = parsed.transactions.map((tx: any) => {
+             const mappedAccountName = accountMappings[tx.account_id] || tx.accountName;
+             return {
+               ...tx,
+               analysis: analyzeTransaction(tx, mappedUserCardNames, mappedAccountName, tx.scoutDebugIsCreditCard, loadedCustomCards)
+             };
+           });
            setTransactions(analyzed);
         }
         
@@ -60,10 +78,14 @@ export default function DashboardPage() {
       
       if (res.ok) {
         if (data.transactions) {
-           const analyzed = data.transactions.map((tx: any) => ({
-             ...tx,
-             analysis: analyzeTransaction(tx, data.userCardNames, tx.accountName, tx.scoutDebugIsCreditCard, loadedCustomCards)
-           }));
+           const mappedUserCardNames = getMappedUserCardNames(data.institutions, data.userCardNames);
+           const analyzed = data.transactions.map((tx: any) => {
+             const mappedAccountName = accountMappings[tx.account_id] || tx.accountName;
+             return {
+               ...tx,
+               analysis: analyzeTransaction(tx, mappedUserCardNames, mappedAccountName, tx.scoutDebugIsCreditCard, loadedCustomCards)
+             };
+           });
            setTransactions(analyzed);
         }
         if (data.institutions) {

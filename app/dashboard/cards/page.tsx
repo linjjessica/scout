@@ -29,18 +29,24 @@ export default function CustomCardsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [userCardNames, setUserCardNames] = useState<string[]>([]);
+  const [accountMappings, setAccountMappings] = useState<Record<string, string>>({});
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   
   // Form State
   const [provider, setProvider] = useState("Chase");
   const [cardName, setCardName] = useState("");
   const [defaultRate, setDefaultRate] = useState("1");
+  const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [categories, setCategories] = useState<{name: string, rate: string}[]>([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
 
   useEffect(() => {
     const customCardsData = localStorage.getItem('scout_custom_cards');
     if (customCardsData) {
       setCustomCards(JSON.parse(customCardsData));
+    }
+    const mappingsData = localStorage.getItem('scout_account_mappings');
+    if (mappingsData) {
+      setAccountMappings(JSON.parse(mappingsData));
     }
     
     // Load institutions from the cache first
@@ -98,7 +104,8 @@ export default function CustomCardsPage() {
     e.preventDefault();
     
     // Construct the formatted CardRule
-    const formattedCardName = provider === "Other" ? cardName : `${provider} ${cardName}`;
+    const finalCardName = provider === "Other" ? cardName : `${provider} ${cardName}`;
+    const formattedCardName = finalCardName.trim();
     
     // Convert percentages to decimals
     const parsedDefaultRate = parseFloat(defaultRate) / 100;
@@ -118,12 +125,27 @@ export default function CustomCardsPage() {
 
     saveCustomCards([...customCards, newCard]);
     
+    if (editingAccountId) {
+      const newMappings = { ...accountMappings, [editingAccountId]: formattedCardName.trim() };
+      setAccountMappings(newMappings);
+      localStorage.setItem('scout_account_mappings', JSON.stringify(newMappings));
+    }
+    
     // Reset
     setIsFormOpen(false);
+    setEditingAccountId(null);
     setProvider("Chase");
     setCardName("");
     setDefaultRate("1");
     setCategories([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
+  };
+
+  const handleEditAccountCard = (acc: any) => {
+    setEditingAccountId(acc.account_id);
+    setProvider("Other");
+    setCardName(acc.name);
+    setIsFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -134,7 +156,16 @@ export default function CustomCardsPage() {
           <p className="text-neutral-500 mt-2 text-lg">Define specific cashback rates for cards that aren't in our database.</p>
          </div>
          <button 
-            onClick={() => setIsFormOpen(!isFormOpen)}
+            onClick={() => {
+              if (isFormOpen) {
+                setEditingAccountId(null);
+                setProvider("Chase");
+                setCardName("");
+                setDefaultRate("1");
+                setCategories([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
+              }
+              setIsFormOpen(!isFormOpen);
+            }}
             className="flex items-center gap-2 px-6 py-3 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl font-semibold text-sm uppercase tracking-widest transition-all shadow-lg"
           >
             {isFormOpen ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
@@ -335,28 +366,23 @@ export default function CustomCardsPage() {
                          </div>
                           <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
                             <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Available Balance</p>
-                            <p className="font-semibold text-neutral-900 tabular-nums">
-                              ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
-                            </p>
+                            <div className="flex items-center gap-3">
+                              <p className="font-semibold text-neutral-900 tabular-nums">
+                                ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
+                              </p>
+                              <button 
+                                onClick={() => handleEditAccountCard(acc)}
+                                className="text-[10px] font-semibold text-neutral-500 hover:text-black uppercase tracking-widest px-2 py-1 rounded bg-neutral-100/50 hover:bg-neutral-200/50 transition-colors"
+                              >
+                                Edit Benefits
+                              </button>
+                            </div>
                           </div>
                           {/* Card Benefits Section */}
                           {(() => {
-                            // First, try to find a better matching name from userCardNames (since Plaid might just say "CREDIT CARD")
                             const allCardsList = [...customCards, ...CARDS];
-                            const overrideName = userCardNames.find(uName => 
-                               findDBProps(uName, allCardsList)?.cardName === findDBProps(acc.name, allCardsList)?.cardName
-                            ) || acc.name;
-                            
-                            // If Plaid says "CREDIT CARD" and we haven't found a mapping, try to match by mask
-                            let finalNameToSearch = overrideName;
-                            if (finalNameToSearch.toUpperCase() === "CREDIT CARD" && userCardNames.length > 0) {
-                                // Simple heuristic: just look up the first mapped name that hasn't been obviously consumed
-                                // (A more robust fix requires Plaid Transaction metadata to link reliably)
-                                const possibleMatch = userCardNames.find(n => n.toUpperCase() !== "CREDIT CARD");
-                                if (possibleMatch) finalNameToSearch = possibleMatch;
-                            }
-
-                            const dbCard = findDBProps(finalNameToSearch, allCardsList);
+                            const lookupName = accountMappings[acc.account_id] || acc.name;
+                            const dbCard = findDBProps(lookupName, allCardsList);
                             if (!dbCard) {
                               return (
                                 <div className="mt-4 pt-4 border-t border-black/5">
