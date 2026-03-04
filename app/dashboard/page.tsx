@@ -9,13 +9,15 @@ import { getCategoryCoverage } from "@/lib/analysis";
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [institutions, setInstitutions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ... (use effect fetching here, leaving alone with replace) ...
-
+  // Derive flat accounts list for existing logic
+  const allAccounts = institutions.flatMap(inst => inst.accounts || []);
+  const creditCards = allAccounts.filter((acc: any) => acc.subtype === 'credit card');
+  
   // calculate coverage based on accounts
-  const accountNames = accounts.filter(acc => acc.subtype === 'credit card').map(acc => acc.name);
+  const accountNames = creditCards.map((acc: any) => acc.name);
   const categoryCoverage = getCategoryCoverage(accountNames);
 
   const fetchTransactions = async (forceRefresh = false) => {
@@ -27,7 +29,7 @@ export default function DashboardPage() {
       if (!forceRefresh && cachedData) {
         const parsed = JSON.parse(cachedData);
         setTransactions(parsed.transactions || []);
-        setAccounts(parsed.accounts || []);
+        setInstitutions(parsed.institutions || []);
         setLoading(false);
         return;
       }
@@ -37,7 +39,7 @@ export default function DashboardPage() {
       
       if (res.ok) {
         setTransactions(data.transactions || []);
-        setAccounts(data.accounts || []);
+        setInstitutions(data.institutions || []);
         // Save to cache
         localStorage.setItem(cacheKey, JSON.stringify(data));
       }
@@ -60,7 +62,6 @@ export default function DashboardPage() {
   const missedRewards = transactions.reduce((sum, tx) => sum + (tx.amount * Math.max(0, (tx.analysis?.rate || baselineRate) - baselineRate)), 0);
   
   // Calculate distinct accounts connected (filtering for credit cards only)
-  const creditCards = accounts.filter(acc => acc.subtype === 'credit card');
   const linkedCards = creditCards.length > 0 ? creditCards.length : (transactions.length > 0 ? 1 : 0);
   
   const recentTransactions = transactions.slice(0, 50);
@@ -227,32 +228,88 @@ export default function DashboardPage() {
       </div>
 
       <div className="apple-glass p-10">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-semibold text-neutral-900 tracking-tight">Connected Credit Cards</h2>
-          <CreditCard className="w-5 h-5 text-neutral-400" />
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <h2 className="text-2xl font-semibold text-neutral-900 tracking-tight">Connected Accounts</h2>
+            <p className="text-sm text-neutral-500 mt-1">Manage your linked institutions and their associated accounts.</p>
+          </div>
+          <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center shadow-lg">
+            <Landmark className="w-6 h-6 text-white" />
+          </div>
         </div>
         
         {loading ? (
-          <div className="py-8 text-center text-neutral-500">Loading accounts...</div>
-        ) : accounts.filter(acc => acc.subtype === 'credit card').length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {accounts.filter(acc => acc.subtype === 'credit card').map((acc, i) => (
-              <div key={i} className="bg-white/60 p-6 rounded-[1.25rem] border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-1 group">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-neutral-900 flex items-center justify-center shadow-md">
-                    <CreditCard className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+          <div className="py-20 text-center">
+            <div className="inline-block w-8 h-8 border-4 border-neutral-200 border-t-neutral-800 rounded-full animate-spin mb-4"></div>
+            <p className="text-neutral-500 font-bold tracking-widest uppercase text-xs">Fetching institutions...</p>
+          </div>
+        ) : institutions.length > 0 ? (
+          <div className="grid gap-8">
+            {institutions.map((inst, idx) => (
+              <div key={idx} className="bg-white/40 border border-white/60 rounded-[2rem] overflow-hidden shadow-sm transition-all hover:shadow-md hover:bg-white/50">
+                <div className="p-8 border-b border-black/5 flex items-center justify-between bg-white/30">
+                  <div className="flex items-center gap-5">
+                    {inst.institution.logo ? (
+                      <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center p-2 shadow-sm border border-black/5 overflow-hidden">
+                        <img 
+                          src={`data:image/png;base64,${inst.institution.logo}`} 
+                          alt={inst.institution.name}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-14 h-14 rounded-2xl bg-neutral-900 flex items-center justify-center shadow-md">
+                        <Landmark className="w-7 h-7 text-white" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-xl font-bold text-neutral-900 tracking-tight">{inst.institution.name}</h3>
+                      <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest mt-1">{inst.accounts.length} Accounts Linked</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-neutral-900 tracking-tight">{acc.name}</h3>
-                    <p className="text-xs text-neutral-500 uppercase tracking-widest mt-0.5">{acc.subtype} •••• {acc.mask}</p>
+                </div>
+                
+                <div className="p-4 sm:p-8">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {inst.accounts.map((acc: any, i: number) => (
+                      <div key={i} className="bg-white/60 p-6 rounded-2xl border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-all hover:-translate-y-1 group">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110",
+                            acc.subtype === 'credit card' ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"
+                          )}>
+                            {acc.subtype === 'credit card' ? <CreditCard className="w-5 h-5" /> : <Landmark className="w-5 h-5" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-neutral-900 tracking-tight truncate">{acc.name}</h4>
+                            <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5 truncate">
+                              {acc.subtype} •••• {acc.mask}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
+                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Available Balance</p>
+                           <p className="font-semibold text-neutral-900 tabular-nums">
+                             ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
+                           </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="py-12 bg-white/40 border border-white/60 rounded-[1.5rem] shadow-inner text-center">
-            <p className="text-neutral-500 font-medium">No accounts linked yet. Use the Sync Account button to connect.</p>
+          <div className="py-20 bg-white/40 border border-white/60 rounded-[2.5rem] shadow-inner text-center">
+             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100">
+               <span className="text-neutral-200 text-3xl">∅</span>
+             </div>
+             <p className="text-neutral-900 font-bold text-lg mb-2 tracking-tight">No institutions connected</p>
+             <p className="text-neutral-500 max-w-sm mx-auto">Sync your first bank account to start analyzing your rewards across all your cards.</p>
+             <div className="mt-8 flex justify-center">
+               <PlaidLink />
+             </div>
           </div>
         )}
       </div>
@@ -264,3 +321,4 @@ export default function DashboardPage() {
 function cn(...classes: any[]) {
   return classes.filter(Boolean).join(' ');
 }
+

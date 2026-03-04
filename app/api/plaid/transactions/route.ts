@@ -24,7 +24,7 @@ export async function GET() {
   }
 
   let transactions: any[] = [];
-  let accounts: any[] = [];
+  let institutions: any[] = [];
 
   if (accessTokens.length === 0) {
      // Return empty arrays if no tokens
@@ -33,23 +33,52 @@ export async function GET() {
       // Fetch for all tokens concurrently
       await Promise.all(accessTokens.map(async (token) => {
         try {
-          const response = await plaidClient.transactionsSync({
+          const syncResponse = await plaidClient.transactionsSync({
             access_token: token,
           });
           const accountsResponse = await plaidClient.accountsGet({
             access_token: token,
           });
+          const itemResponse = await plaidClient.itemGet({
+            access_token: token,
+          });
           
-          transactions.push(...response.data.added);
-          accounts.push(...accountsResponse.data.accounts);
+          const institutionId = itemResponse.data.item.institution_id;
+          let institutionData: { name: string; logo: string | null; primary_color: string | null } = { 
+            name: 'Unknown Institution', 
+            logo: null, 
+            primary_color: null 
+          };
+          
+          if (institutionId) {
+            try {
+              const instResponse = await plaidClient.institutionsGetById({
+                institution_id: institutionId,
+                country_codes: ['US' as any],
+                options: { include_optional_metadata: true }
+              });
+              institutionData = {
+                name: instResponse.data.institution.name,
+                logo: instResponse.data.institution.logo || null,
+                primary_color: instResponse.data.institution.primary_color || null
+              };
+            } catch (instErr) {
+              console.error(`Error fetching institution ${institutionId}:`, instErr);
+            }
+          }
+          
+          transactions.push(...syncResponse.data.added);
+          institutions.push({
+            institution: institutionData,
+            accounts: accountsResponse.data.accounts
+          });
         } catch (err) {
           console.error(`Error fetching for token ${token.substring(0, 10)}...:`, err);
-          // Continue with other tokens if one fails
         }
       }));
     } catch (error) {
-        console.error('Error fetching transactions:', error);
-        return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
+        console.error('Error fetching data:', error);
+        return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
     }
   }
 
@@ -77,5 +106,5 @@ export async function GET() {
       };
   }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  return NextResponse.json({ transactions: analyzedTransactions, accounts });
+  return NextResponse.json({ transactions: analyzedTransactions, institutions });
 }
