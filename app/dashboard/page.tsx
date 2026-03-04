@@ -172,15 +172,18 @@ export default function DashboardPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                              <h3 className="font-semibold text-black tracking-tight truncate max-w-[180px] sm:max-w-xs">{tx.name || tx.merchant_name}</h3>
-                             <div className="flex flex-wrap items-center gap-3 mt-0.5">
-                               <span className="text-[10px] font-semibold text-neutral-400">{tx.date}</span>
-                               {tx.accountName && tx.accountName.trim() && (
-                                 <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest bg-black/[0.03] px-1.5 py-0.5 rounded border border-black/5">
-                                   {tx.accountName}
-                                 </span>
-                               )}
-                               <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">{MainCategory}</span>
-                             </div>
+                              <div className="flex flex-wrap items-center gap-2 mt-1">
+                                <span className="text-[10px] font-semibold text-neutral-400">{tx.date}</span>
+                                {tx.accountName && tx.accountName.trim() && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-tighter">Paid with</span>
+                                    <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest bg-black/[0.03] px-1.5 py-0.5 rounded border border-black/5">
+                                      {tx.accountName}
+                                    </span>
+                                  </div>
+                                )}
+                                <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">{MainCategory}</span>
+                              </div>
                           </div>
                        </div>
                        

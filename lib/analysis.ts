@@ -101,11 +101,11 @@ const CARDS: CardRule[] = [
 export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string) {
   const category = (transaction.category ? transaction.category[0] : 'GENERAL').toUpperCase().replace(/_/g, ' ');
   let bestCard = null;
-  let maxRate = 0.01; // Default to 1% baseline
+  let maxRate = 0.01;
 
   // Helper to find a card in our database by name (fuzzy)
   const findDBProps = (name: string) => {
-    if (!name) return null;
+    if (!name || typeof name !== 'string') return null;
     const lowerU = name.toLowerCase();
     
     return CARDS.find(dbCard => {
@@ -130,54 +130,54 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
     });
   };
 
-  // Strictly use user's cards if provided
+  // STRICTLY limit to user's cards if they are provided
   let cardsToConsider: CardRule[] = [];
   if (userCardNames && userCardNames.length > 0) {
     cardsToConsider = CARDS.filter(dbCard => 
       userCardNames.some(uName => findDBProps(uName)?.cardName === dbCard.cardName)
     );
-  } else {
-    // If no user layout, show global best
+  }
+
+  // If we found recognized cards in the user's wallet, use ONLY those.
+  // Otherwise, if the user has NO recognized cards, we'll suggest from our whole DB
+  // but label it clearly as a "Standard Card" recommendation if it's not theirs.
+  const usingUserPortfolio = cardsToConsider.length > 0;
+  if (!usingUserPortfolio) {
     cardsToConsider = CARDS;
   }
 
-  // If we have cards to analyze, find the best one for this category
-  if (cardsToConsider.length > 0) {
-    cardsToConsider.forEach((card) => {
-      const matchedKey = Object.keys(card.categories).find(c => 
-        category.includes(c) || c.includes(category)
-      );
-      const rate = matchedKey ? card.categories[matchedKey] : card.defaultRate;
+  cardsToConsider.forEach((card) => {
+    const matchedKey = Object.keys(card.categories).find(c => 
+      category.includes(c) || c.includes(category)
+    );
+    const rate = matchedKey ? (card.categories[matchedKey] || 0) : (card.defaultRate || 0);
 
-      if (rate > maxRate) {
-        maxRate = rate;
-        bestCard = card.cardName;
-      }
-    });
-  }
+    if (rate > maxRate) {
+      maxRate = rate;
+      bestCard = card.cardName;
+    }
+  });
 
   // Calculate what the user actually earned
-  let currentRate = 0.01; // Default fallback
-  if (usedCardName) {
-    const usedDBProps = findDBProps(usedCardName);
-    if (usedDBProps) {
-       const matchedKey = Object.keys(usedDBProps.categories).find(c => 
-         category.includes(c) || c.includes(category)
-       );
-       currentRate = matchedKey ? usedDBProps.categories[matchedKey] : usedDBProps.defaultRate;
-    }
+  let currentRate = 0.01;
+  const usedDBProps = usedCardName ? findDBProps(usedCardName) : null;
+  if (usedDBProps) {
+     const matchedKey = Object.keys(usedDBProps.categories).find(c => 
+       category.includes(c) || c.includes(category)
+     );
+     currentRate = matchedKey ? (usedDBProps.categories[matchedKey] || 0) : (usedDBProps.defaultRate || 0);
   }
 
-  const potentialEarnings = (transaction.amount || 0) * maxRate;
+  const potentialEarnings = (transaction.amount || 0) * (maxRate || 0);
   const isOptimized = currentRate >= maxRate;
 
   return {
-    optimalCard: bestCard || 'Standard Card',
+    optimalCard: bestCard || (usingUserPortfolio ? 'Standard Card' : 'Add your cards'),
     potentialEarnings,
     rate: maxRate,
     currentRate,
     isOptimized,
-    rewardGap: Math.max(0, maxRate - currentRate)
+    rewardGap: Math.max(0, (maxRate || 0) - (currentRate || 0))
   };
 }
 
