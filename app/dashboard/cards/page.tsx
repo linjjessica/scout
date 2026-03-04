@@ -37,6 +37,10 @@ export default function CustomCardsPage() {
   const [cardName, setCardName] = useState("");
   const [defaultRate, setDefaultRate] = useState("1");
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  
+  // Inline editing state for connected accounts
+  const [inlineEditingAccountId, setInlineEditingAccountId] = useState<string | null>(null);
+  const [inlineEditValue, setInlineEditValue] = useState("");
   const [categories, setCategories] = useState<{name: string, rate: string}[]>([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
 
   useEffect(() => {
@@ -140,13 +144,20 @@ export default function CustomCardsPage() {
     setCategories([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
   };
 
-  const handleEditAccountCard = (acc: any) => {
-    setEditingAccountId(acc.account_id);
-    setProvider("Other");
-    setCardName(acc.name);
-    setIsFormOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleInlineEditStart = (acc: any) => {
+    setInlineEditingAccountId(acc.account_id);
+    setInlineEditValue(accountMappings[acc.account_id] || acc.name);
   };
+
+  const handleInlineEditSave = (accId: string) => {
+    if (inlineEditValue.trim() === "") return;
+    
+    const newMappings = { ...accountMappings, [accId]: inlineEditValue.trim() };
+    setAccountMappings(newMappings);
+    localStorage.setItem('scout_account_mappings', JSON.stringify(newMappings));
+    setInlineEditingAccountId(null);
+  };
+
 
   return (
     <div className="space-y-16 pb-20">
@@ -357,11 +368,39 @@ export default function CustomCardsPage() {
                            )}>
                              {acc.subtype === 'credit card' ? <CreditCard className="w-5 h-5" /> : <Landmark className="w-5 h-5" />}
                            </div>
-                           <div className="flex-1 min-w-0">
-                             <h4 className="font-semibold text-neutral-900 tracking-tight truncate">{acc.name}</h4>
-                             <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5 truncate">
-                               {acc.subtype} •••• {acc.mask}
-                             </p>
+                            <div className="flex-1 min-w-0">
+                              {inlineEditingAccountId === acc.account_id ? (
+                                <div className="flex items-center gap-2">
+                                  <input 
+                                    className="font-semibold text-neutral-900 tracking-tight bg-white border border-neutral-200 rounded px-2 py-1 w-full text-sm focus:outline-none focus:ring-2 focus:ring-neutral-200"
+                                    value={inlineEditValue}
+                                    onChange={(e) => setInlineEditValue(e.target.value)}
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleInlineEditSave(acc.account_id);
+                                      if (e.key === 'Escape') setInlineEditingAccountId(null);
+                                    }}
+                                  />
+                                  <button onClick={() => handleInlineEditSave(acc.account_id)} className="p-1.5 bg-neutral-900 text-white rounded hover:bg-neutral-800 transition-colors">
+                                    <Save className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button onClick={() => setInlineEditingAccountId(null)} className="p-1.5 bg-neutral-100 text-neutral-500 rounded hover:bg-neutral-200 transition-colors">
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 group/edit">
+                                  <h4 className="font-semibold text-neutral-900 tracking-tight truncate">
+                                    {accountMappings[acc.account_id] || acc.name}
+                                  </h4>
+                                  <button onClick={() => handleInlineEditStart(acc)} className="opacity-0 group-hover/edit:opacity-100 text-[9px] font-bold text-neutral-400 hover:text-neutral-900 uppercase tracking-widest px-1.5 py-0.5 rounded bg-neutral-100/50 hover:bg-neutral-200 transition-all border border-neutral-200/50 hover:border-neutral-300">
+                                    Edit Mapping
+                                  </button>
+                                </div>
+                              )}
+                              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5 truncate">
+                                {acc.subtype} •••• {acc.mask}
+                              </p>
                            </div>
                          </div>
                           <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
@@ -370,12 +409,6 @@ export default function CustomCardsPage() {
                               <p className="font-semibold text-neutral-900 tabular-nums">
                                 ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
                               </p>
-                              <button 
-                                onClick={() => handleEditAccountCard(acc)}
-                                className="text-[10px] font-semibold text-neutral-500 hover:text-black uppercase tracking-widest px-2 py-1 rounded bg-neutral-100/50 hover:bg-neutral-200/50 transition-colors"
-                              >
-                                Edit Benefits
-                              </button>
                             </div>
                           </div>
                           {/* Card Benefits Section */}
