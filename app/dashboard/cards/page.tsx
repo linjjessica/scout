@@ -5,7 +5,8 @@ import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
 import { CreditCard, Plus, Trash2, Save, X, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CardRule, CARDS } from "@/lib/analysis";
+import { CardRule, CARDS, findDBProps } from "@/lib/analysis";
+import { getCategoryStyle } from "@/lib/categories";
 
 const COMMON_CATEGORIES = [
   "FOOD AND DRINK",
@@ -327,13 +328,47 @@ export default function CustomCardsPage() {
                              </p>
                            </div>
                          </div>
-                         <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
-                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Available Balance</p>
-                           <p className="font-semibold text-neutral-900 tabular-nums">
-                             ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
-                           </p>
-                         </div>
-                       </div>
+                          <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
+                            <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Available Balance</p>
+                            <p className="font-semibold text-neutral-900 tabular-nums">
+                              ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
+                            </p>
+                          </div>
+                          {/* Card Benefits Section */}
+                          {(() => {
+                            const dbCard = findDBProps(acc.name);
+                            if (!dbCard) {
+                              return (
+                                <div className="mt-4 pt-4 border-t border-black/5">
+                                  <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">Card information not found</p>
+                                </div>
+                              );
+                            }
+                            const cats = Object.entries(dbCard.categories);
+                            const allRates = cats.length > 0
+                              ? [...cats, ['DEFAULT', dbCard.defaultRate]]
+                              : [['DEFAULT', dbCard.defaultRate]];
+                            return (
+                              <div className="mt-4 pt-4 border-t border-black/5 flex flex-wrap gap-2">
+                                {cats.map(([cat, rate]) => {
+                                  const style = getCategoryStyle(cat);
+                                  const Icon = style.icon;
+                                  return (
+                                    <div key={cat} className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border", style.color)}>
+                                      <Icon className="w-3 h-3 flex-shrink-0" />
+                                      <span>{cat.replace('AND', '&')}</span>
+                                      <span className="text-emerald-600">{((rate as number) * 100).toFixed(0)}%</span>
+                                    </div>
+                                  );
+                                })}
+                                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border bg-neutral-50 text-neutral-500 border-neutral-200">
+                                  <span>All else</span>
+                                  <span>{(dbCard.defaultRate * 100).toFixed(0)}%</span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
                      ))}
                    </div>
                  </div>
