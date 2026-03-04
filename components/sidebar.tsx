@@ -65,6 +65,11 @@ export function Sidebar() {
           <p className="text-[11px] text-neutral-500 leading-relaxed">
             Plaid has limited our production access. If syncing or refresh stops working, we may have hit our API limit while pursuing full production access.
           </p>
+          <div className="pt-2 mt-2 border-t border-neutral-100 flex items-center justify-between">
+            <p className="text-[10px] font-medium text-neutral-400">
+              Made by <span className="text-neutral-900 font-semibold italic">Jessica Lin</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
