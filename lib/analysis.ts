@@ -34,11 +34,11 @@ const CARDS: CardRule[] = [
   //   },
   //   defaultRate: 0.02,
   // },
-  {
-    cardName: 'Plaid Credit Card',
-    categories: {},
-    defaultRate: 0.02,
-  },
+  // {
+  //   cardName: 'Plaid Credit Card',
+  //   categories: {},
+  //   defaultRate: 0.02,
+  // },
   {
     cardName: 'Chase Freedom Unlimited',
     categories: {
@@ -129,9 +129,23 @@ function findDBProps(name: string | undefined | null) {
 }
 
 export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string, isCreditCard?: boolean) {
+  const categoryRaw = transaction.category ? transaction.category : ['GENERAL'];
+  const categoryStr = categoryRaw.join(' ').toUpperCase();
   const category = (transaction.category ? transaction.category[0] : 'GENERAL').toUpperCase().replace(/_/g, ' ');
+  
   let bestCard = null;
   let maxRate = -1;
+
+  // Prevent recommending rewards for non-purchases (like Zelle transfers or paying off credit cards)
+  if (categoryStr.includes('TRANSFER') || categoryStr.includes('LOAN PAYMENT') || categoryStr.includes('PAYMENT')) {
+     return {
+      optimalCard: null,
+      rate: 0,
+      currentRate: 0,
+      isOptimized: true,
+      rewardGap: 0,
+    };
+  }
 
   // STRICTLY limit to user's cards if they are recognized
   let cardsToConsider: CardRule[] = [];
