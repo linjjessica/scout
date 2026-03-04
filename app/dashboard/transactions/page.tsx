@@ -101,9 +101,11 @@ export default function TransactionsPage() {
                           </h3>
                           <div className="flex flex-wrap items-center gap-3 mt-1.5">
                             <span className="text-xs font-semibold text-neutral-400">{tx.date}</span>
-                            <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-widest bg-black/[0.03] px-2 py-0.5 rounded-md border border-black/5">
-                              {tx.accountName}
-                            </span>
+                            {tx.accountName && tx.accountName.trim() && (
+                              <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-widest bg-black/[0.03] px-2 py-0.5 rounded-md border border-black/5">
+                                {tx.accountName}
+                              </span>
+                            )}
                             <span className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">
                               {MainCategory}
                             </span>
