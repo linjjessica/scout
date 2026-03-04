@@ -11,27 +11,27 @@ interface CategoryStyle {
 }
 
 const categoryIcons: Record<string, CategoryStyle> = {
-  'Travel': { icon: Car, color: 'bg-blue-50 text-blue-600 border-blue-100' },
-  'Food and Drink': { icon: Coffee, color: 'bg-orange-50 text-orange-600 border-orange-100' },
-  'Service': { icon: Play, color: 'bg-purple-50 text-purple-600 border-purple-100' },
-  'Services': { icon: Play, color: 'bg-purple-50 text-purple-600 border-purple-100' },
-  'Shops': { icon: ShoppingBag, color: 'bg-pink-50 text-pink-600 border-pink-100' },
-  'Healthcare': { icon: Zap, color: 'bg-red-50 text-red-600 border-red-100' },
-  'Entertainment': { icon: Play, color: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
-  'Utilities': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
-  'Rent and Utilities': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
-  'Community': { icon: LayoutGrid, color: 'bg-teal-50 text-teal-600 border-teal-100' },
-  'Payment': { icon: DollarSign, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
-  'Loan Payments': { icon: Landmark, color: 'bg-slate-50 text-slate-600 border-slate-100' },
-  'Transfer': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
-  'Transfer Out': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
-  'Transfer In': { icon: ArrowDownLeft, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
-  'Income': { icon: BadgeDollarSign, color: 'bg-green-50 text-green-600 border-green-100' },
-  'Bank Fees': { icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100' },
-  'Recreation': { icon: Play, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100' },
-  'Tax': { icon: DollarSign, color: 'bg-stone-50 text-stone-600 border-stone-100' },
-  'Transportation': { icon: Car, color: 'bg-sky-50 text-sky-600 border-sky-100' },
-  'General': { icon: ShoppingBag, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
+  'TRAVEL': { icon: Car, color: 'bg-blue-50 text-blue-600 border-blue-100' },
+  'FOOD AND DRINK': { icon: Coffee, color: 'bg-orange-50 text-orange-600 border-orange-100' },
+  'SERVICE': { icon: Play, color: 'bg-purple-50 text-purple-600 border-purple-100' },
+  'SERVICES': { icon: Play, color: 'bg-purple-50 text-purple-600 border-purple-100' },
+  'SHOPS': { icon: ShoppingBag, color: 'bg-pink-50 text-pink-600 border-pink-100' },
+  'HEALTHCARE': { icon: Zap, color: 'bg-red-50 text-red-600 border-red-100' },
+  'ENTERTAINMENT': { icon: Play, color: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+  'UTILITIES': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
+  'RENT AND UTILITIES': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
+  'COMMUNITY': { icon: LayoutGrid, color: 'bg-teal-50 text-teal-600 border-teal-100' },
+  'PAYMENT': { icon: DollarSign, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+  'LOAN PAYMENTS': { icon: Landmark, color: 'bg-slate-50 text-slate-600 border-slate-100' },
+  'TRANSFER': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
+  'TRANSFER OUT': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
+  'TRANSFER IN': { icon: ArrowDownLeft, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+  'INCOME': { icon: BadgeDollarSign, color: 'bg-green-50 text-green-600 border-green-100' },
+  'BANK FEES': { icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100' },
+  'RECREATION': { icon: Play, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100' },
+  'TAX': { icon: DollarSign, color: 'bg-stone-50 text-stone-600 border-stone-100' },
+  'TRANSPORTATION': { icon: Car, color: 'bg-sky-50 text-sky-600 border-sky-100' },
+  'GENERAL': { icon: ShoppingBag, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
 };
 
 import { getCategoryCoverage } from "@/lib/analysis";
@@ -172,21 +172,10 @@ export default function DashboardPage() {
           ) : recentTransactions.length > 0 ? (
             <div className="divide-y divide-black/5 max-h-[420px] overflow-y-auto pr-2">
                {recentTransactions.map((tx, i) => {
-                 let rawCategory = tx.category?.[0] || 'General';
-                 
-                 // Handle Plaid's SCREAMING_SNAKE_CASE (e.g. FOOD_AND_DRINK)
-                 // Or uppercase formats by converting to Title Case to match exactly with dictionary keys
-                 if (rawCategory.includes('_') || rawCategory === rawCategory.toUpperCase()) {
-                     rawCategory = rawCategory.replace(/_/g, ' ')
-                         .toLowerCase()
-                         .split(' ')
-                         .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                         .join(' ')
-                         .replace('And', 'and'); // specific fix for 'Food and Drink'
-                 }
-                 
-                 const MainCategory = rawCategory;
-                 const cache = categoryIcons[MainCategory] || categoryIcons['General'];
+                 const rawCategory = tx.category?.[0] || 'GENERAL';
+                 // Simply normalize to uppercase with spaces to match dictionary keys
+                 const MainCategory = rawCategory.toUpperCase().replace(/_/g, ' ');
+                 const cache = categoryIcons[MainCategory] || categoryIcons['GENERAL'];
                  const IconComponent = cache.icon;
 
                  return (
@@ -226,7 +215,7 @@ export default function DashboardPage() {
             {loading ? (
               <div className="py-8 text-center text-neutral-500">Evaluating coverage...</div>
             ) : categoryCoverage.map((cat, i) => {
-              const cache = categoryIcons[cat.category] || categoryIcons['General'];
+              const cache = categoryIcons[cat.category.toUpperCase().replace(/_/g, ' ')] || categoryIcons['GENERAL'];
               const IconComponent = cache.icon;
               return (
                 <div key={i} className="bg-white/60 p-4 rounded-[1.25rem] border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-1 flex items-center gap-4 group">
