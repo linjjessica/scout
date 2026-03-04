@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, Chrome, DollarSign, ArrowUpRight, AlertCircle, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign } from "lucide-react";
+import { ShoppingBag, RefreshCw, BadgeDollarSign, DollarSign, ArrowUpRight, ArrowDownLeft, AlertCircle, Landmark, CheckCircle, Chrome } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getCategoryStyle, formatCategoryName } from "@/lib/categories";
 
 interface Transaction {
   transaction_id: string;
@@ -18,36 +19,6 @@ interface Transaction {
     rate: number;
   };
 }
-
-interface CategoryStyle {
-  icon: any;
-  color: string;
-}
-
-const categoryIcons: Record<string, CategoryStyle> = {
-  'TRAVEL': { icon: Car, color: 'bg-blue-50 text-blue-600 border-blue-100' },
-  'FOOD AND DRINK': { icon: Coffee, color: 'bg-orange-50 text-orange-600 border-orange-100' },
-  'SERVICE': { icon: Play, color: 'bg-purple-50 text-purple-600 border-purple-100' },
-  'SERVICES': { icon: Play, color: 'bg-purple-50 text-purple-600 border-purple-100' },
-  'SHOPS': { icon: ShoppingBag, color: 'bg-pink-50 text-pink-600 border-pink-100' },
-  'HEALTHCARE': { icon: Zap, color: 'bg-red-50 text-red-600 border-red-100' },
-  'ENTERTAINMENT': { icon: Play, color: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
-  'UTILITIES': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
-  'RENT AND UTILITIES': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
-  'COMMUNITY': { icon: LayoutGrid, color: 'bg-teal-50 text-teal-600 border-teal-100' },
-  'PAYMENT': { icon: DollarSign, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
-  'LOAN PAYMENTS': { icon: Landmark, color: 'bg-slate-50 text-slate-600 border-slate-100' },
-  'TRANSFER': { icon: ArrowUpRight, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
-  'TRANSFER OUT': { icon: ArrowUpRight, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
-  'TRANSFER IN': { icon: ArrowDownLeft, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
-  'INCOME': { icon: BadgeDollarSign, color: 'bg-green-50 text-green-600 border-green-100' },
-  'BANK FEES': { icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100' },
-  'RECREATION': { icon: Play, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100' },
-  'TAX': { icon: DollarSign, color: 'bg-stone-50 text-stone-600 border-stone-100' },
-  'TRANSPORTATION': { icon: Car, color: 'bg-sky-50 text-sky-600 border-sky-100' },
-  'GENERAL': { icon: ShoppingBag, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
-  'GENERAL MERCHANDISE': { icon: ShoppingBag, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' }
-};
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -113,9 +84,8 @@ export default function TransactionsPage() {
          ) : (
           <div className="divide-y divide-black/5 bg-white/20">
              {transactions.map((tx, i) => {
-               const rawCategory = tx.category?.[0] || 'GENERAL';
-               const MainCategory = rawCategory.toUpperCase().replace(/_/g, ' ');
-               const cache = categoryIcons[MainCategory] || categoryIcons['GENERAL'];
+               const MainCategory = formatCategoryName(tx.category?.[0]);
+               const cache = getCategoryStyle(tx.category?.[0]);
                const IconComponent = cache.icon;
 
                return (
