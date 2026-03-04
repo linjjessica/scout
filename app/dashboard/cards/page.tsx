@@ -459,7 +459,7 @@ export default function CustomCardsPage() {
                             
                             {inlineEditingAccountId !== acc.account_id && (
                               <button onClick={() => handleInlineEditStart(acc)} className="w-[124px] justify-center text-[9px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex flex-shrink-0 items-center">
-                                Edit Card Name
+                                Edit Account Name
                               </button>
                             )}
                           </div>
