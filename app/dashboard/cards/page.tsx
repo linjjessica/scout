@@ -28,6 +28,7 @@ export default function CustomCardsPage() {
   const [customCards, setCustomCards] = useState<CardRule[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [institutions, setInstitutions] = useState<any[]>([]);
+  const [userCardNames, setUserCardNames] = useState<string[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   
   // Form State
@@ -49,6 +50,9 @@ export default function CustomCardsPage() {
       if (parsed.institutions) {
         setInstitutions(parsed.institutions);
       }
+      if (parsed.userCardNames) {
+        setUserCardNames(parsed.userCardNames);
+      }
       setLoadingAccounts(false);
     } else {
       // If no cache, fetch directly
@@ -56,6 +60,7 @@ export default function CustomCardsPage() {
         .then(r => r.json())
         .then(data => {
           if (data.institutions) setInstitutions(data.institutions);
+          if (data.userCardNames) setUserCardNames(data.userCardNames);
           localStorage.setItem('scout_transactions_cache', JSON.stringify(data));
         })
         .finally(() => setLoadingAccounts(false));
@@ -336,7 +341,22 @@ export default function CustomCardsPage() {
                           </div>
                           {/* Card Benefits Section */}
                           {(() => {
-                            const dbCard = findDBProps(acc.name);
+                            // First, try to find a better matching name from userCardNames (since Plaid might just say "CREDIT CARD")
+                            const allCardsList = [...customCards, ...CARDS];
+                            const overrideName = userCardNames.find(uName => 
+                               findDBProps(uName, allCardsList)?.cardName === findDBProps(acc.name, allCardsList)?.cardName
+                            ) || acc.name;
+                            
+                            // If Plaid says "CREDIT CARD" and we haven't found a mapping, try to match by mask
+                            let finalNameToSearch = overrideName;
+                            if (finalNameToSearch.toUpperCase() === "CREDIT CARD" && userCardNames.length > 0) {
+                                // Simple heuristic: just look up the first mapped name that hasn't been obviously consumed
+                                // (A more robust fix requires Plaid Transaction metadata to link reliably)
+                                const possibleMatch = userCardNames.find(n => n.toUpperCase() !== "CREDIT CARD");
+                                if (possibleMatch) finalNameToSearch = possibleMatch;
+                            }
+
+                            const dbCard = findDBProps(finalNameToSearch, allCardsList);
                             if (!dbCard) {
                               return (
                                 <div className="mt-4 pt-4 border-t border-black/5">
