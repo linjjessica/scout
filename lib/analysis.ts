@@ -161,7 +161,7 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
   });
 
   // Calculate what the user actually earned
-  let currentRate = 0.01;
+  let currentRate = 0.0;
   const usedDBProps = findDBProps(usedCardName);
   if (usedDBProps) {
      const matchedKey = Object.keys(usedDBProps.categories).find(c => 
