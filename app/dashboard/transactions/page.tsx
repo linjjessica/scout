@@ -136,10 +136,10 @@ export default function TransactionsPage() {
                            {tx.analysis && (
                              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest text-right">
                                {tx.analysis.isOptimized ? (
-                                 `${tx.analysis.optimalCard || 'SAVVY SPENDING'} • ${(tx.analysis.rate * 100).toFixed(0)}%`
+                                 `${tx.analysis.optimalCard || 'SAVVY SPENDING'} • ${((tx.analysis.rate || 0) * 100).toFixed(0)}%`
                                ) : (
                                  <span className="text-amber-600/70 font-bold">
-                                   Earned {(tx.analysis.currentRate * 100).toFixed(0)}% • Could have earned {(tx.analysis.rate * 100).toFixed(0)}%
+                                   Earned ${((tx.analysis.currentRate || 0) * 100).toFixed(0)}% • Could have earned ${((tx.analysis.rate || 0) * 100).toFixed(0)}%
                                  </span>
                                )}
                              </span>

@@ -101,10 +101,11 @@ const CARDS: CardRule[] = [
 export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string) {
   const category = (transaction.category ? transaction.category[0] : 'GENERAL').toUpperCase().replace(/_/g, ' ');
   let bestCard = null;
-  let maxRate = 0;
+  let maxRate = 0.01; // Default to 1% baseline
 
   // Helper to find a card in our database by name (fuzzy)
   const findDBProps = (name: string) => {
+    if (!name) return null;
     const lowerU = name.toLowerCase();
     
     return CARDS.find(dbCard => {
@@ -113,19 +114,15 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
       // 1. Direct inclusion
       if (lowerU.includes(lowerDB) || lowerDB.includes(lowerU)) return true;
       
-      // 2. Dynamic brand matching (extracting the first word/brand e.g. "Chase", "Amex")
+      // 2. Dynamic brand matching
       const words = lowerDB.split(' ');
       if (words.length > 0) {
         const brand = words[0];
-        // Only match brands that are at least 4 chars to avoid false positives with "The", "Card", etc.
         if (brand.length >= 4 && lowerU.includes(brand)) {
-           // If it's a known brand, check for one more identifier (e.g. "Gold", "Sapphire", "Double")
-           // to distinguish between multiple cards from same bank
            if (words.length > 1) {
              const identifier = words[1];
              if (lowerU.includes(identifier)) return true;
            }
-           // Fallback to just brand match if the user's account name is generic (e.g. just "Chase")
            return true; 
         }
       }
@@ -133,35 +130,34 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
     });
   };
 
-  // If user cards are provided, prioritize them. 
-  let cardsToConsider = CARDS;
+  // Strictly use user's cards if provided
+  let cardsToConsider: CardRule[] = [];
   if (userCardNames && userCardNames.length > 0) {
     cardsToConsider = CARDS.filter(dbCard => 
       userCardNames.some(uName => findDBProps(uName)?.cardName === dbCard.cardName)
     );
-    
-    // If none of our DB cards match the user's cards, fall back to all cards
-    if (cardsToConsider.length === 0) {
-      cardsToConsider = CARDS;
-    }
+  } else {
+    // If no user layout, show global best
+    cardsToConsider = CARDS;
   }
 
-  cardsToConsider.forEach((card) => {
-    // Precise uppercase matching or inclusion
-    const matchedKey = Object.keys(card.categories).find(c => 
-      category.includes(c) || c.includes(category)
-    );
-    
-    const rate = matchedKey ? card.categories[matchedKey] : card.defaultRate;
+  // If we have cards to analyze, find the best one for this category
+  if (cardsToConsider.length > 0) {
+    cardsToConsider.forEach((card) => {
+      const matchedKey = Object.keys(card.categories).find(c => 
+        category.includes(c) || c.includes(category)
+      );
+      const rate = matchedKey ? card.categories[matchedKey] : card.defaultRate;
 
-    if (rate > maxRate) {
-      maxRate = rate;
-      bestCard = card.cardName;
-    }
-  });
+      if (rate > maxRate) {
+        maxRate = rate;
+        bestCard = card.cardName;
+      }
+    });
+  }
 
   // Calculate what the user actually earned
-  let currentRate = 0;
+  let currentRate = 0.01; // Default fallback
   if (usedCardName) {
     const usedDBProps = findDBProps(usedCardName);
     if (usedDBProps) {
@@ -169,17 +165,14 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
          category.includes(c) || c.includes(category)
        );
        currentRate = matchedKey ? usedDBProps.categories[matchedKey] : usedDBProps.defaultRate;
-    } else {
-       // Default to 1% baseline if card unknown
-       currentRate = 0.01;
     }
   }
 
-  const potentialEarnings = transaction.amount * maxRate;
+  const potentialEarnings = (transaction.amount || 0) * maxRate;
   const isOptimized = currentRate >= maxRate;
 
   return {
-    optimalCard: bestCard,
+    optimalCard: bestCard || 'Standard Card',
     potentialEarnings,
     rate: maxRate,
     currentRate,
