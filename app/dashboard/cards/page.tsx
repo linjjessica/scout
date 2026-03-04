@@ -470,16 +470,19 @@ export default function CustomCardsPage() {
                               <p className="font-semibold text-neutral-900 tabular-nums">
                                 ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
                               </p>
-                              <button 
-                                onClick={() => handleEditBenefits(acc)}
-                                className="w-[124px] justify-center text-[10px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex items-center flex-shrink-0"
-                              >
-                                Edit Benefits
-                              </button>
+                              {acc.subtype === 'credit card' && (
+                                <button 
+                                  onClick={() => handleEditBenefits(acc)}
+                                  className="w-[124px] justify-center text-[10px] font-bold text-neutral-600 hover:text-neutral-900 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-white hover:bg-neutral-50 transition-all border border-neutral-200 shadow-sm flex items-center flex-shrink-0"
+                                >
+                                  Edit Benefits
+                                </button>
+                              )}
                             </div>
                           </div>
                           {/* Card Benefits Section */}
-                          {inlineEditingBenefitsAccountId === acc.account_id ? (
+                          {acc.subtype === 'credit card' && (
+                            inlineEditingBenefitsAccountId === acc.account_id ? (
                             <div className="mt-4 pt-4 border-t border-neutral-200">
                               <div className="flex items-center justify-between mb-3">
                                 <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Edit Benefits: <span className="text-neutral-900">{inlineBenefitsCardName}</span></p>
@@ -568,7 +571,8 @@ export default function CustomCardsPage() {
                                 </div>
                               </div>
                             );
-                          })()}
+                          })()
+                          )}
                         </div>
                      ))}
                    </div>
