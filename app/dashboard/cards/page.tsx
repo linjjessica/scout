@@ -384,7 +384,7 @@ export default function CustomCardsPage() {
                    </div>
                  </div>
                  <div className="p-4 sm:p-8">
-                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                   <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-6">
                      {inst.accounts.map((acc: any, i: number) => (
                        <div key={i} className="bg-white/60 p-6 rounded-2xl border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-all hover:-translate-y-1 group">
                          <div className="flex items-center gap-4">
