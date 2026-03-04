@@ -23,15 +23,16 @@ const categoryIcons: Record<string, CategoryStyle> = {
   'COMMUNITY': { icon: LayoutGrid, color: 'bg-teal-50 text-teal-600 border-teal-100' },
   'PAYMENT': { icon: DollarSign, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
   'LOAN PAYMENTS': { icon: Landmark, color: 'bg-slate-50 text-slate-600 border-slate-100' },
-  'TRANSFER': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
-  'TRANSFER OUT': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
-  'TRANSFER IN': { icon: ArrowDownLeft, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+  'TRANSFER': { icon: ArrowUpRight, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
+  'TRANSFER OUT': { icon: ArrowUpRight, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
+  'TRANSFER IN': { icon: ArrowDownLeft, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
   'INCOME': { icon: BadgeDollarSign, color: 'bg-green-50 text-green-600 border-green-100' },
   'BANK FEES': { icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100' },
   'RECREATION': { icon: Play, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100' },
   'TAX': { icon: DollarSign, color: 'bg-stone-50 text-stone-600 border-stone-100' },
   'TRANSPORTATION': { icon: Car, color: 'bg-sky-50 text-sky-600 border-sky-100' },
   'GENERAL': { icon: ShoppingBag, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
+  'GENERAL MERCHANDISE': { icon: ShoppingBag, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' }
 };
 
 import { getCategoryCoverage } from "@/lib/analysis";
