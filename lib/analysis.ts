@@ -128,7 +128,7 @@ function findDBProps(name: string | undefined | null) {
   });
 }
 
-export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string) {
+export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string, isCreditCard?: boolean) {
   const category = (transaction.category ? transaction.category[0] : 'GENERAL').toUpperCase().replace(/_/g, ' ');
   let bestCard = null;
   let maxRate = -1;
@@ -168,6 +168,9 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
        category.includes(c) || c.includes(category)
      );
      currentRate = matchedKey ? (usedDBProps.categories[matchedKey] || 0) : (usedDBProps.defaultRate || 0);
+  } else if (isCreditCard) {
+     // If it's a credit card but we don't recognize it, assume a 1% base rate
+     currentRate = 0.01;
   }
 
   const potentialEarnings = (transaction.amount || 0) * (maxRate || 0);

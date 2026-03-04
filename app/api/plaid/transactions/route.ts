@@ -98,6 +98,7 @@ export async function GET() {
   const analyzedTransactions = transactions.map((tx: any) => {
       // Find the account name for this transaction
       let accountName = 'Linked Account';
+      let isCreditCard = false;
       for (const inst of institutions) {
         const acc = inst.accounts.find((a: any) => a.account_id === tx.account_id);
         if (acc) {
@@ -122,6 +123,7 @@ export async function GET() {
           
           // Append mask for disambiguation
           accountName = mask ? `${bestName} .... ${mask}` : bestName;
+          isCreditCard = acc.type === 'credit' || acc.subtype === 'credit card';
           break;
         }
       }
@@ -150,7 +152,7 @@ export async function GET() {
         // Override the legacy category array so the frontend/analysis works seamlessly
         category: [displayCategory],
         scoutDebugField: "DEPLOYMENT_VERIFIED_V4",
-        analysis: analyzeTransaction(txWithCategory, userCardNames, accountName),
+        analysis: analyzeTransaction(txWithCategory, userCardNames, accountName, isCreditCard),
       };
   }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
