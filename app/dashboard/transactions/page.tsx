@@ -28,19 +28,9 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTransactions = async (forceRefresh = false) => {
+  const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const cacheKey = 'scout_transactions_cache';
-      const cachedData = localStorage.getItem(cacheKey);
-
-      if (!forceRefresh && cachedData) {
-        const parsed = JSON.parse(cachedData);
-        setTransactions(parsed.transactions || []);
-        setLoading(false);
-        return;
-      }
-
       const res = await fetch('/api/plaid/transactions');
       const data = await res.json();
       
@@ -48,7 +38,6 @@ export default function TransactionsPage() {
         if (data.transactions) {
           setTransactions(data.transactions);
         }
-        localStorage.setItem(cacheKey, JSON.stringify(data));
       }
     } catch (error) {
       console.error("Failed to fetch transactions", error);
@@ -69,7 +58,7 @@ export default function TransactionsPage() {
           <p className="text-neutral-500 mt-2 text-lg">Deep analysis of your spending habits and reward distribution.</p>
          </div>
          <button 
-            onClick={() => fetchTransactions(true)}
+            onClick={() => fetchTransactions()}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-3 bg-white/50 hover:bg-white text-black rounded-xl font-semibold text-sm uppercase tracking-widest transition-all shadow-sm border border-black/5 disabled:opacity-50"
           >
