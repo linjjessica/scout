@@ -85,11 +85,29 @@ export async function GET() {
     }
   }
 
+  function formatAccountName(acc: any, instName: string) {
+    const officialName = acc.official_name;
+    const simpleName = acc.name;
+    const mask = acc.mask;
+    
+    let bestName = (officialName && officialName.length > simpleName.length) ? officialName : simpleName;
+    
+    if (bestName.toUpperCase() === 'CREDIT CARD' || bestName.toUpperCase() === 'CHECKING' || bestName.length < 3) {
+      bestName = `${instName} ${bestName.charAt(0).toUpperCase() + bestName.slice(1).toLowerCase()}`;
+    }
+    
+    if (!bestName.toLowerCase().includes(instName.toLowerCase())) {
+      bestName = `${instName} - ${bestName}`;
+    }
+    
+    return mask ? `${bestName} .... ${mask}` : bestName;
+  }
+
   // Collect all user credit card names for personalized analysis
   const userCardNames = institutions.flatMap(inst => 
     inst.accounts
       .filter((acc: any) => acc.type === 'credit' || acc.subtype === 'credit card')
-      .map((acc: any) => acc.name)
+      .map((acc: any) => formatAccountName(acc, inst.institution.name))
   );
   
   console.log(`[Wallet] Detected User Cards: ${userCardNames.join(', ')}`);
@@ -113,19 +131,7 @@ export async function GET() {
           
           console.log(`\n[PLAID ACCOUNTS DEBUG] Raw Plaid object for ${instName}:`, JSON.stringify(acc, null, 2));
 
-          // If the name is generic (e.g. "CREDIT CARD"), use the bank name
-          if (bestName.toUpperCase() === 'CREDIT CARD' || bestName.toUpperCase() === 'CHECKING' || bestName.length < 3) {
-            // "Chase" + " " + "Credit Card"
-            bestName = `${instName} ${bestName.charAt(0).toUpperCase() + bestName.slice(1).toLowerCase()}`;
-          }
-          
-          // Ensure bank name is included for context if not already there
-          if (!bestName.toLowerCase().includes(instName.toLowerCase())) {
-            bestName = `${instName} - ${bestName}`;
-          }
-          
-          // Append mask for disambiguation
-          accountName = mask ? `${bestName} .... ${mask}` : bestName;
+          accountName = formatAccountName(acc, instName);
           isCreditCard = acc.type === 'credit' || acc.subtype === 'credit card';
           break;
         }
