@@ -162,14 +162,16 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
 
   // Calculate what the user actually earned
   let currentRate = 0.0;
-  const usedDBProps = findDBProps(usedCardName);
+  // Don't look up DB props if we explicitly know it's not a credit card
+  const usedDBProps = isCreditCard === false ? null : findDBProps(usedCardName);
+  
   if (usedDBProps) {
      const matchedKey = Object.keys(usedDBProps.categories).find(c => 
        category.includes(c) || c.includes(category)
      );
      currentRate = matchedKey ? (usedDBProps.categories[matchedKey] || 0) : (usedDBProps.defaultRate || 0);
-  } else if (isCreditCard) {
-     // If it's a credit card but we don't recognize it, assume a 1% base rate
+  } else if (isCreditCard === true) {
+     // If it's explicitly a credit card but we don't recognize it, assume a 1% base rate
      currentRate = 0.01;
   }
 
