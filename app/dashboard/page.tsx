@@ -172,7 +172,20 @@ export default function DashboardPage() {
           ) : recentTransactions.length > 0 ? (
             <div className="divide-y divide-black/5 max-h-[420px] overflow-y-auto pr-2">
                {recentTransactions.map((tx, i) => {
-                 const MainCategory = tx.category?.[0] || 'General';
+                 let rawCategory = tx.category?.[0] || 'General';
+                 
+                 // Handle Plaid's SCREAMING_SNAKE_CASE (e.g. FOOD_AND_DRINK)
+                 // Or uppercase formats by converting to Title Case to match exactly with dictionary keys
+                 if (rawCategory.includes('_') || rawCategory === rawCategory.toUpperCase()) {
+                     rawCategory = rawCategory.replace(/_/g, ' ')
+                         .toLowerCase()
+                         .split(' ')
+                         .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                         .join(' ')
+                         .replace('And', 'and'); // specific fix for 'Food and Drink'
+                 }
+                 
+                 const MainCategory = rawCategory;
                  const cache = categoryIcons[MainCategory] || categoryIcons['General'];
                  const IconComponent = cache.icon;
 

@@ -38,8 +38,8 @@ const categoryIcons: Record<string, CategoryStyle> = {
   'Payment': { icon: DollarSign, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
   'Loan Payments': { icon: Landmark, color: 'bg-slate-50 text-slate-600 border-slate-100' },
   'Transfer': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
-  'Transfer Out': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
-  'Transfer In': { icon: ArrowDownLeft, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+  'Transfer Out': { icon: ArrowUpRight, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
+  'Transfer In': { icon: ArrowDownLeft, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
   'Income': { icon: BadgeDollarSign, color: 'bg-green-50 text-green-600 border-green-100' },
   'Bank Fees': { icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100' },
   'Recreation': { icon: Play, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100' },
@@ -112,7 +112,19 @@ export default function TransactionsPage() {
         ) : (
           <div className="divide-y divide-black/5 bg-white/20">
              {transactions.map((tx, i) => {
-               const MainCategory = tx.category?.[0] || 'General';
+               let rawCategory = tx.category?.[0] || 'General';
+               
+               // Handle Plaid's SCREAMING_SNAKE_CASE (e.g. FOOD_AND_DRINK)
+               if (rawCategory.includes('_') || rawCategory === rawCategory.toUpperCase()) {
+                   rawCategory = rawCategory.replace(/_/g, ' ')
+                       .toLowerCase()
+                       .split(' ')
+                       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                       .join(' ')
+                       .replace('And', 'and');
+               }
+               
+               const MainCategory = rawCategory;
                const cache = categoryIcons[MainCategory] || categoryIcons['General'];
                const IconComponent = cache.icon;
 
