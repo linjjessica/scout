@@ -99,8 +99,17 @@ export async function GET() {
       for (const inst of institutions) {
         const acc = inst.accounts.find((a: any) => a.account_id === tx.account_id);
         if (acc) {
-          // If the name is just a dash or too short, use the institution name
-          accountName = (acc.name && acc.name.length > 1) ? acc.name : inst.institution.name;
+          // Create a descriptive name: "Chase - Freedom Unlimited" or just "Discover it chrome"
+          const instName = inst.institution.name;
+          const accName = acc.name;
+          
+          if (accName && accName.toLowerCase().includes(instName.toLowerCase())) {
+            accountName = accName; // Already contains bank name, e.g. "Discover it chrome"
+          } else if (accName) {
+            accountName = `${instName} - ${accName}`; // e.g. "Wells Fargo - Checking"
+          } else {
+            accountName = instName;
+          }
           break;
         }
       }
