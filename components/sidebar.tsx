@@ -57,15 +57,7 @@ export function Sidebar() {
         })}
       </div>
 
-      <div className="p-6">
-        <button 
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-4 px-5 py-4 text-sm font-medium text-neutral-500 hover:text-neutral-900 hover:bg-white/40 rounded-[1.25rem] transition-all duration-300 group"
-        >
-          <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          Sign Out
-        </button>
-      </div>
+
     </div>
   );
 }
