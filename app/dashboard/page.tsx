@@ -92,7 +92,6 @@ export default function DashboardPage() {
             Welcome back! Your portfolio is optimized for maximum rewards.
           </p>
         </div>
-        <PlaidLink />
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -279,13 +278,16 @@ export default function DashboardPage() {
       </div>
 
       <div className="apple-glass p-10">
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
           <div>
             <h2 className="text-2xl font-semibold text-neutral-900 tracking-tight">Connected Accounts</h2>
             <p className="text-sm text-neutral-500 mt-1">Manage your linked institutions and their associated accounts.</p>
           </div>
-          <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center shadow-lg">
-            <Landmark className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-4">
+            <PlaidLink />
+            <div className="hidden sm:flex w-12 h-12 bg-neutral-900 rounded-2xl items-center justify-center shadow-lg">
+              <Landmark className="w-6 h-6 text-white" />
+            </div>
           </div>
         </div>
         
