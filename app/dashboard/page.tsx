@@ -5,27 +5,32 @@ import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
 import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign } from "lucide-react";
 
-const categoryIcons: Record<string, any> = {
-  'Travel': Car,
-  'Food and Drink': Coffee,
-  'Service': Play,
-  'Services': Play,
-  'Shops': ShoppingBag,
-  'Healthcare': Zap,
-  'Entertainment': Play,
-  'Utilities': Zap,
-  'Community': LayoutGrid,
-  'Payment': DollarSign,
-  'Loan Payments': Landmark,
-  'Transfer': ArrowUpRight,
-  'Transfer Out': ArrowUpRight,
-  'Transfer In': ArrowDownLeft,
-  'Income': BadgeDollarSign,
-  'Bank Fees': AlertCircle,
-  'Recreation': Play,
-  'Tax': DollarSign,
-  'Transportation': Car,
-  'General': ShoppingBag,
+interface CategoryStyle {
+  icon: any;
+  color: string;
+}
+
+const categoryIcons: Record<string, CategoryStyle> = {
+  'Travel': { icon: Car, color: 'bg-blue-50 text-blue-600 border-blue-100' },
+  'Food and Drink': { icon: Coffee, color: 'bg-orange-50 text-orange-600 border-orange-100' },
+  'Service': { icon: Play, color: 'bg-purple-50 text-purple-600 border-purple-100' },
+  'Services': { icon: Play, color: 'bg-purple-50 text-purple-600 border-purple-100' },
+  'Shops': { icon: ShoppingBag, color: 'bg-pink-50 text-pink-600 border-pink-100' },
+  'Healthcare': { icon: Zap, color: 'bg-red-50 text-red-600 border-red-100' },
+  'Entertainment': { icon: Play, color: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+  'Utilities': { icon: Zap, color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
+  'Community': { icon: LayoutGrid, color: 'bg-teal-50 text-teal-600 border-teal-100' },
+  'Payment': { icon: DollarSign, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+  'Loan Payments': { icon: Landmark, color: 'bg-slate-50 text-slate-600 border-slate-100' },
+  'Transfer': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
+  'Transfer Out': { icon: ArrowUpRight, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
+  'Transfer In': { icon: ArrowDownLeft, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+  'Income': { icon: BadgeDollarSign, color: 'bg-green-50 text-green-600 border-green-100' },
+  'Bank Fees': { icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100' },
+  'Recreation': { icon: Play, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100' },
+  'Tax': { icon: DollarSign, color: 'bg-stone-50 text-stone-600 border-stone-100' },
+  'Transportation': { icon: Car, color: 'bg-sky-50 text-sky-600 border-sky-100' },
+  'General': { icon: ShoppingBag, color: 'bg-neutral-50 text-neutral-600 border-neutral-100' },
 };
 
 import { getCategoryCoverage } from "@/lib/analysis";
@@ -167,12 +172,14 @@ export default function DashboardPage() {
             <div className="divide-y divide-black/5 max-h-[420px] overflow-y-auto pr-2">
                {recentTransactions.map((tx, i) => {
                  const MainCategory = tx.category?.[0] || 'General';
-                 const Icon = categoryIcons[MainCategory] || ShoppingBag;
+                 const cache = categoryIcons[MainCategory] || categoryIcons['General'];
+                 const IconComponent = cache.icon;
+
                  return (
                    <div key={i} className="py-4 flex items-center justify-between group">
                       <div className="flex items-center gap-4">
-                         <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-sm border border-black/5 group-hover:scale-105 transition-transform duration-300">
-                            <Icon className="w-5 h-5 text-neutral-800" /> 
+                         <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shadow-sm border group-hover:scale-105 transition-transform duration-300", cache.color)}>
+                            <IconComponent className="w-5 h-5" /> 
                          </div>
                          <div>
                             <h3 className="font-semibold text-black tracking-tight">{tx.name || tx.merchant_name}</h3>
@@ -205,14 +212,15 @@ export default function DashboardPage() {
             {loading ? (
               <div className="py-8 text-center text-neutral-500">Evaluating coverage...</div>
             ) : categoryCoverage.map((cat, i) => {
-              const Icon = categoryIcons[cat.category] || categoryIcons['Shops'];
+              const cache = categoryIcons[cat.category] || categoryIcons['General'];
+              const IconComponent = cache.icon;
               return (
                 <div key={i} className="bg-white/60 p-4 rounded-[1.25rem] border border-white/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-1 flex items-center gap-4 group">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] transition-transform group-hover:scale-105",
                     cat.hasBonusCoverage ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-neutral-100 text-neutral-600 border border-neutral-200"
                   )}>
-                    <Icon className="w-4 h-4" />
+                    <IconComponent className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-neutral-900 text-sm mb-1">{cat.category}</h3>
