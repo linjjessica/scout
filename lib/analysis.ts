@@ -163,7 +163,7 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
   // Calculate what the user actually earned
   let currentRate = 0.0;
   // Don't look up DB props if we explicitly know it's not a credit card
-  console.log("isCreditCard", isCreditCard)
+  console.log(`[Analysis] Assessing transaction for ${usedCardName} - isCreditCard: ${isCreditCard}`);
   const usedDBProps = isCreditCard === false ? null : findDBProps(usedCardName);
   
   if (usedDBProps) {
