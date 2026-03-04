@@ -38,10 +38,14 @@ export default function CustomCardsPage() {
   const [defaultRate, setDefaultRate] = useState("1");
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   
-  // Inline editing state for connected accounts
   const [inlineEditingAccountId, setInlineEditingAccountId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
   const [categories, setCategories] = useState<{name: string, rate: string}[]>([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
+
+  const [inlineEditingBenefitsAccountId, setInlineEditingBenefitsAccountId] = useState<string | null>(null);
+  const [inlineBenefitsCardName, setInlineBenefitsCardName] = useState("");
+  const [inlineBenefitsDefaultRate, setInlineBenefitsDefaultRate] = useState("1");
+  const [inlineBenefitsCategories, setInlineBenefitsCategories] = useState<{name: string, rate: string}[]>([]);
 
   useEffect(() => {
     const customCardsData = localStorage.getItem('scout_custom_cards');
@@ -159,29 +163,56 @@ export default function CustomCardsPage() {
   };
 
   const handleEditBenefits = (acc: any) => {
+    const allCardsList = [...customCards, ...CARDS];
     const lookupName = accountMappings[acc.account_id] || acc.name;
-    setEditingAccountId(acc.account_id);
+    const existingCard = findDBProps(lookupName, allCardsList);
     
-    const existingCustom = customCards.find(c => c.cardName === lookupName);
-    if (existingCustom) {
-      setProvider("Other");
-      setCardName(lookupName);
-      setDefaultRate((existingCustom.defaultRate * 100).toString());
-      
-      const catsArray = Object.entries(existingCustom.categories).map(([name, rate]) => ({
+    setInlineEditingBenefitsAccountId(acc.account_id);
+    setInlineBenefitsCardName(lookupName);
+    
+    if (existingCard) {
+      setInlineBenefitsDefaultRate((existingCard.defaultRate * 100).toString());
+      const catsArray = Object.entries(existingCard.categories).map(([name, rate]) => ({
         name,
         rate: ((rate as number) * 100).toString()
       }));
-      setCategories(catsArray.length > 0 ? catsArray : [{ name: COMMON_CATEGORIES[0], rate: "3" }]);
+      setInlineBenefitsCategories(catsArray.length > 0 ? catsArray : []);
     } else {
-      setProvider("Other");
-      setCardName(lookupName);
-      setDefaultRate("1");
-      setCategories([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
+      setInlineBenefitsDefaultRate("1");
+      setInlineBenefitsCategories([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
     }
+  };
+
+  const handleInlineBenefitsSave = () => {
+    if (!inlineEditingBenefitsAccountId) return;
     
-    setIsFormOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const mappedCategories: Record<string, number> = {};
+    inlineBenefitsCategories.forEach(cat => {
+      if (cat.name.trim() && !isNaN(Number(cat.rate))) {
+        mappedCategories[cat.name.trim()] = Number(cat.rate) / 100;
+      }
+    });
+
+    const newCard: CardRule = {
+      cardName: inlineBenefitsCardName,
+      categories: mappedCategories,
+      defaultRate: Number(inlineBenefitsDefaultRate) / 100 || 0.01
+    };
+
+    const updatedCards = [...customCards.filter(c => c.cardName !== inlineBenefitsCardName), newCard];
+    setCustomCards(updatedCards);
+    localStorage.setItem('scout_custom_cards', JSON.stringify(updatedCards));
+    setInlineEditingBenefitsAccountId(null);
+  };
+
+  const addInlineCategory = () => setInlineBenefitsCategories([...inlineBenefitsCategories, { name: COMMON_CATEGORIES[0], rate: "3" }]);
+  const updateInlineCategory = (index: number, field: 'name' | 'rate', value: string) => {
+    const newCats = [...inlineBenefitsCategories];
+    newCats[index] = { ...newCats[index], [field]: value };
+    setInlineBenefitsCategories(newCats);
+  };
+  const removeInlineCategory = (index: number) => {
+    setInlineBenefitsCategories(inlineBenefitsCategories.filter((_, i) => i !== index));
   };
 
 
@@ -448,7 +479,62 @@ export default function CustomCardsPage() {
                             </div>
                           </div>
                           {/* Card Benefits Section */}
-                          {(() => {
+                          {inlineEditingBenefitsAccountId === acc.account_id ? (
+                            <div className="mt-4 pt-4 border-t border-neutral-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Edit Benefits: <span className="text-neutral-900">{inlineBenefitsCardName}</span></p>
+                                <div className="flex items-center gap-2">
+                                  <button onClick={handleInlineBenefitsSave} className="px-3 py-1.5 bg-neutral-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-md hover:bg-neutral-800 transition-colors flex items-center gap-1.5 shadow-sm">
+                                    <Save className="w-3.5 h-3.5" /> Save
+                                  </button>
+                                  <button onClick={() => setInlineEditingBenefitsAccountId(null)} className="p-1 border border-neutral-200 bg-white text-neutral-500 rounded-md hover:bg-neutral-50 shadow-sm transition-colors">
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="space-y-3 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+                                {inlineBenefitsCategories.map((cat, idx) => (
+                                  <div key={idx} className="flex items-center gap-2">
+                                    <select 
+                                      value={cat.name}
+                                      onChange={(e) => updateInlineCategory(idx, 'name', e.target.value)}
+                                      className="flex-1 bg-white border border-neutral-200 rounded-md px-2 py-1.5 text-[10px] uppercase font-bold tracking-widest text-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-200 shadow-sm"
+                                    >
+                                      {COMMON_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                    <div className="flex items-center gap-1">
+                                      <input 
+                                        type="number"
+                                        value={cat.rate}
+                                        onChange={(e) => updateInlineCategory(idx, 'rate', e.target.value)}
+                                        className="w-16 bg-white border border-neutral-200 rounded-md px-2 py-1.5 text-xs font-semibold text-center focus:outline-none focus:ring-2 focus:ring-neutral-200 shadow-sm"
+                                      />
+                                      <span className="text-[10px] font-bold text-neutral-400">%</span>
+                                    </div>
+                                    <button onClick={() => removeInlineCategory(idx)} className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors">
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ))}
+                                <button onClick={addInlineCategory} className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest px-2.5 py-1.5 rounded-md bg-indigo-50 border border-indigo-100/50 hover:bg-indigo-100 transition-colors">
+                                  <Plus className="w-3.5 h-3.5" /> Add Category
+                                </button>
+                                
+                                <div className="pt-3 border-t border-neutral-200 flex items-center justify-between">
+                                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Base Rate (All Else)</span>
+                                  <div className="flex items-center gap-1 mr-8">
+                                    <input 
+                                      type="number"
+                                      value={inlineBenefitsDefaultRate}
+                                      onChange={(e) => setInlineBenefitsDefaultRate(e.target.value)}
+                                      className="w-16 bg-white border border-neutral-200 rounded-md px-2 py-1.5 text-xs font-semibold text-center focus:outline-none focus:ring-2 focus:ring-neutral-200 shadow-sm"
+                                    />
+                                    <span className="text-[10px] font-bold text-neutral-400">%</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (() => {
                             const allCardsList = [...customCards, ...CARDS];
                             const lookupName = accountMappings[acc.account_id] || acc.name;
                             const dbCard = findDBProps(lookupName, allCardsList);
@@ -478,7 +564,7 @@ export default function CustomCardsPage() {
                                 })}
                                 <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border bg-neutral-50 text-neutral-500 border-neutral-200">
                                   <span>All else</span>
-                                  <span>{(dbCard.defaultRate * 100).toFixed(0)}%</span>
+                                  <span className="text-neutral-600">{((dbCard.defaultRate as number) * 100).toFixed(0)}%</span>
                                 </div>
                               </div>
                             );
