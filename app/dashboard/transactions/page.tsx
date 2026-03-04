@@ -93,7 +93,7 @@ export default function TransactionsPage() {
                const IconComponent = cache.icon;
                 
                 // Debug log for Inspector > Console
-                console.log(`[TX Debug] ${tx.name || tx.merchant_name} -> Account: ${tx.accountName}`);
+                console.log(`[Full TX Data]`, tx);
 
                return (
                  <div key={i} className="p-6 sm:px-8 py-6 flex flex-col sm:flex-row gap-6 sm:items-center justify-between group hover:bg-white/60 transition-colors">
