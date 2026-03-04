@@ -173,19 +173,20 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-16 pb-20">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h1 className="text-5xl font-semibold text-black tracking-tight">
-            Wealth Overview
-          </h1>
-          <p className="text-neutral-500 mt-2 text-lg">
-            Welcome back! Your portfolio is optimized for maximum rewards.
-          </p>
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-5xl font-semibold text-black tracking-tight">
+              Wealth Overview
+            </h1>
+            <p className="text-neutral-500 mt-2 text-lg">
+              Welcome back! Your portfolio is optimized for maximum rewards.
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Date Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3">
+        {/* Date Filter Bar */}
+        <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1.5 flex-wrap">
           {PRESETS.map(p => (
             <button
@@ -230,6 +231,7 @@ export default function DashboardPage() {
             />
           </div>
         )}
+      </div>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
