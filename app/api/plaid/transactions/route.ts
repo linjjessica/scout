@@ -154,5 +154,18 @@ export async function GET() {
       };
   }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  return NextResponse.json({ transactions: analyzedTransactions, institutions });
+  return NextResponse.json(
+    { 
+      transactions: analyzedTransactions, 
+      institutions,
+      serverTimestamp: Date.now()
+    }, 
+    { 
+      headers: {
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    }
+  );
 }
