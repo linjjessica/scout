@@ -8,17 +8,17 @@ const CARDS: CardRule[] = [
   {
     cardName: 'Amex Gold',
     categories: {
-      'Food and Drink': 0.04,
-      'Groceries': 0.04,
-      'Travel': 0.03,
+      'FOOD AND DRINK': 0.04,
+      'GROCERIES': 0.04,
+      'TRAVEL': 0.03,
     },
     defaultRate: 0.01,
   },
   {
     cardName: 'Chase Sapphire Preferred',
     categories: {
-      'Travel': 0.02,
-      'Food and Drink': 0.03,
+      'TRAVEL': 0.02,
+      'FOOD AND DRINK': 0.03,
     },
     defaultRate: 0.01,
   },
@@ -30,7 +30,7 @@ const CARDS: CardRule[] = [
   {
     cardName: 'Plaid Business Credit Card',
     categories: {
-      'Food and Drink': 0.03,
+      'FOOD AND DRINK': 0.03,
     },
     defaultRate: 0.02,
   },
@@ -42,89 +42,93 @@ const CARDS: CardRule[] = [
   {
     cardName: 'Chase Freedom Unlimited',
     categories: {
-      'Food and Drink': 0.03,
-      'Healthcare': 0.03, // For Drugstores
+      'FOOD AND DRINK': 0.03,
+      'HEALTHCARE': 0.03, // For Drugstores
     },
     defaultRate: 0.015,
   },
   {
     cardName: 'Capital One SavorOne',
     categories: {
-      'Food and Drink': 0.03,
-      'Groceries': 0.03,
-      'Entertainment': 0.03,
-      'Service': 0.03, // Often includes Streaming
+      'FOOD AND DRINK': 0.03,
+      'GROCERIES': 0.03,
+      'ENTERTAINMENT': 0.03,
+      'SERVICE': 0.03, // Often includes Streaming
     },
     defaultRate: 0.01,
   },
   {
     cardName: 'Wells Fargo Autograph',
     categories: {
-      'Food and Drink': 0.03,
-      'Travel': 0.03,
-      'Gas Station': 0.03,
-      'Transport': 0.03, // Transit
-      'Service': 0.03, // Streaming/Phone
+      'FOOD AND DRINK': 0.03,
+      'TRAVEL': 0.03,
+      'GAS STATION': 0.03,
+      'TRANSPORT': 0.03, // Transit
+      'SERVICE': 0.03, // Streaming/Phone
     },
     defaultRate: 0.01,
   },
   {
     cardName: 'Amex Blue Cash Preferred',
     categories: {
-      'Groceries': 0.06,
-      'Service': 0.06, // Streaming
-      'Transport': 0.03, // Transit
-      'Gas Station': 0.03,
+      'GROCERIES': 0.06,
+      'SERVICE': 0.06, // Streaming
+      'TRANSPORT': 0.03, // Transit
+      'GAS STATION': 0.03,
     },
     defaultRate: 0.01,
   },
   {
     cardName: 'Amazon Prime Visa',
     categories: {
-      'Shops': 0.05, // Amazon/Whole Foods mapping
-      'Food and Drink': 0.02,
-      'Gas Station': 0.02,
-      'Healthcare': 0.02, // Drugstores
+      'SHOPS': 0.05, // Amazon/Whole Foods mapping
+      'FOOD AND DRINK': 0.02,
+      'GAS STATION': 0.02,
+      'HEALTHCARE': 0.02, // Drugstores
     },
     defaultRate: 0.01,
   },
   {
     cardName: 'Discover it Chrome',
     categories: {
-      'Food and Drink': 0.02,
-      'Gas Station': 0.02,
+      'FOOD AND DRINK': 0.02,
+      'GAS STATION': 0.02,
     },
     defaultRate: 0.01,
   },
 ];
 
 export function analyzeTransaction(transaction: any, userCardNames?: string[]) {
-  const category = (transaction.category ? transaction.category[0] : 'General').toLowerCase();
+  const category = (transaction.category ? transaction.category[0] : 'GENERAL').toUpperCase().replace(/_/g, ' ');
   let bestCard = null;
   let maxRate = 0;
 
   // If user cards are provided, prioritize them. 
-  // Otherwise, use all cards to show what the user *could* be earning (or fallback to user cards if they exist)
   let cardsToConsider = CARDS;
   if (userCardNames && userCardNames.length > 0) {
     cardsToConsider = CARDS.filter(dbCard => 
-      userCardNames.some(uName => 
-        uName.toLowerCase().includes(dbCard.cardName.toLowerCase()) || 
-        dbCard.cardName.toLowerCase().includes(uName.toLowerCase())
-      )
+      userCardNames.some(uName => {
+        const lowerU = uName.toLowerCase();
+        const lowerDB = dbCard.cardName.toLowerCase();
+        // Check for full name match or specific brand match (to handle "Chase Checking" vs "Chase Sapphire")
+        return lowerU.includes(lowerDB) || lowerDB.includes(lowerU) || 
+               (lowerU.includes('chase') && lowerDB.includes('chase')) ||
+               (lowerU.includes('amex') && lowerDB.includes('amex')) ||
+               (lowerU.includes('wells fargo') && lowerDB.includes('wells fargo')) ||
+               (lowerU.includes('capital one') && lowerDB.includes('capital one'));
+      })
     );
     
-    // If none of our DB cards match the user's cards, fall back to all cards so we still show *something* 
-    // but ideally we'd want to know their card's baseline.
+    // If none of our DB cards match the user's cards, fall back to all cards
     if (cardsToConsider.length === 0) {
       cardsToConsider = CARDS;
     }
   }
 
   cardsToConsider.forEach((card) => {
-    // Case-insensitive category matching
+    // Precise uppercase matching or inclusion
     const matchedKey = Object.keys(card.categories).find(c => 
-      category.includes(c.toLowerCase()) || c.toLowerCase().includes(category)
+      category.includes(c) || c.includes(category)
     );
     
     const rate = matchedKey ? card.categories[matchedKey] : card.defaultRate;
@@ -146,21 +150,28 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[]) {
 
 export function getCategoryCoverage(userCardNames: string[]) {
   const commonCategories = [
-    'Food and Drink', 'Groceries', 'Travel', 
-    'Gas Station', 'Service', 'Shops', 'Entertainment'
+    'FOOD AND DRINK', 'GROCERIES', 'TRAVEL', 
+    'GAS STATION', 'SERVICE', 'SHOPS', 'ENTERTAINMENT'
   ];
   
   return commonCategories.map(cat => {
     // Collect stats for each user card
     const cardStats = userCardNames.map(name => {
-      // Very basic fuzzy search for the DB card to tolerate slight name variations
-      const dbCard = CARDS.find(c => name.toLowerCase().includes(c.cardName.toLowerCase()) || c.cardName.toLowerCase().includes(name.toLowerCase()));
+      const lowerN = name.toLowerCase();
+      const dbCard = CARDS.find(c => {
+        const lowerC = c.cardName.toLowerCase();
+        return lowerN.includes(lowerC) || lowerC.includes(lowerN) ||
+               (lowerN.includes('chase') && lowerC.includes('chase')) ||
+               (lowerN.includes('amex') && lowerC.includes('amex')) ||
+               (lowerN.includes('wells fargo') && lowerC.includes('wells fargo')) ||
+               (lowerN.includes('capital one') && lowerC.includes('capital one'));
+      });
       
       if (!dbCard) {
         return { name, rate: null };
       }
       
-      const matchedKey = Object.keys(dbCard.categories).find(c => cat.includes(c));
+      const matchedKey = Object.keys(dbCard.categories).find(c => cat === c || cat.includes(c) || c.includes(cat));
       const rate = matchedKey ? dbCard.categories[matchedKey] : dbCard.defaultRate;
       
       return { name, rate };

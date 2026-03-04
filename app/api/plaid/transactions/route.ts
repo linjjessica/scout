@@ -104,25 +104,27 @@ export async function GET() {
       }
 
       // Plaid provides categories in a few ways. We prefer personal_finance_category.primary
-      // then fallback to the legacy category array, then 'General'.
-      let displayCategory = 'General';
+      // then fallback to the legacy category array, then 'GENERAL'.
+      let displayCategory = 'GENERAL';
       
       if (tx.personal_finance_category && tx.personal_finance_category.primary) {
-        // e.g. "FOOD_AND_DRINK", convert to "Food and Drink"
-        const primary = tx.personal_finance_category.primary;
-        displayCategory = primary.split('_').map((word: string) => 
-          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-        ).join(' ');
+        // e.g. "FOOD_AND_DRINK", convert to "FOOD AND DRINK"
+        displayCategory = tx.personal_finance_category.primary.toUpperCase().replace(/_/g, ' ');
       } else if (tx.category && tx.category.length > 0) {
-        displayCategory = tx.category[0];
+        displayCategory = tx.category[0].toUpperCase().replace(/_/g, ' ');
       }
+
+      const txWithCategory = {
+        ...tx,
+        category: [displayCategory],
+      };
 
       return {
         ...tx,
         accountName,
-        // Override the legacy category array so the frontend logic works seamlessly
+        // Override the legacy category array so the frontend/analysis works seamlessly
         category: [displayCategory],
-        analysis: analyzeTransaction(tx, userCardNames),
+        analysis: analyzeTransaction(txWithCategory, userCardNames),
       };
   }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
