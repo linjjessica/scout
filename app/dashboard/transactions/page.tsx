@@ -109,12 +109,12 @@ export default function TransactionsPage() {
                        </div>
                     </div>
                     
-                    <div className="flex items-center gap-8 justify-between sm:justify-end flex-shrink-0">
-                       <div className="text-right">
+                    <div className="flex items-center gap-6 sm:gap-8 justify-between sm:justify-end flex-shrink-0 mt-4 sm:mt-0 w-full sm:w-auto">
+                       <div className="text-right w-24 sm:w-28 flex-shrink-0">
                            <p className="text-xl font-semibold text-black tabular-nums tracking-tight">-${tx.amount.toFixed(2)}</p>
                            <p className="text-[10px] font-semibold text-neutral-500 tracking-widest uppercase text-right">{tx.iso_currency_code}</p>
                        </div>
-                                              <div className="flex flex-col items-end gap-2">
+                       <div className="flex flex-col items-end gap-2 sm:w-72 lg:w-80 flex-shrink-0">
                            {tx.analysis?.isOptimized ? (
                              <div className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 shadow-sm">
                                 <CheckCircle className="w-3.5 h-3.5" />
