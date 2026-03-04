@@ -224,7 +224,7 @@ export default function DashboardPage() {
                            )}
                            <div className="text-right">
                               <p className="text-sm font-semibold text-black tabular-nums tracking-tight">
-                                -${Math.abs(tx.amount || 0).toFixed(2)}
+                                ${Math.abs(tx.amount || 0).toFixed(2)}
                               </p>
                              {tx.analysis && (
                                <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-tighter mt-0.5">
