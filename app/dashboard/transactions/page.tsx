@@ -111,7 +111,12 @@ export default function TransactionsPage() {
                     
                     <div className="flex items-center gap-6 sm:gap-8 justify-between sm:justify-end flex-shrink-0 mt-4 sm:mt-0 w-full sm:w-auto">
                        <div className="text-right w-24 sm:w-28 flex-shrink-0">
-                           <p className="text-xl font-semibold text-black tabular-nums tracking-tight">-${tx.amount.toFixed(2)}</p>
+                           <p className={cn(
+                             "text-xl font-semibold tabular-nums tracking-tight",
+                             tx.amount < 0 ? "text-emerald-500" : "text-black"
+                           )}>
+                             {tx.amount < 0 ? '+' : '-'}${Math.abs(tx.amount).toFixed(2)}
+                           </p>
                            <p className="text-[10px] font-semibold text-neutral-500 tracking-widest uppercase text-right">{tx.iso_currency_code}</p>
                        </div>
                        <div className="flex flex-col items-end gap-2 sm:w-72 lg:w-80 flex-shrink-0">
