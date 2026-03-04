@@ -158,6 +158,32 @@ export default function CustomCardsPage() {
     setInlineEditingAccountId(null);
   };
 
+  const handleEditBenefits = (acc: any) => {
+    const lookupName = accountMappings[acc.account_id] || acc.name;
+    setEditingAccountId(acc.account_id);
+    
+    const existingCustom = customCards.find(c => c.cardName === lookupName);
+    if (existingCustom) {
+      setProvider("Other");
+      setCardName(lookupName);
+      setDefaultRate((existingCustom.defaultRate * 100).toString());
+      
+      const catsArray = Object.entries(existingCustom.categories).map(([name, rate]) => ({
+        name,
+        rate: ((rate as number) * 100).toString()
+      }));
+      setCategories(catsArray.length > 0 ? catsArray : [{ name: COMMON_CATEGORIES[0], rate: "3" }]);
+    } else {
+      setProvider("Other");
+      setCardName(lookupName);
+      setDefaultRate("1");
+      setCategories([{ name: COMMON_CATEGORIES[0], rate: "3" }]);
+    }
+    
+    setIsFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
 
   return (
     <div className="space-y-16 pb-20">
@@ -409,6 +435,12 @@ export default function CustomCardsPage() {
                               <p className="font-semibold text-neutral-900 tabular-nums">
                                 ${(acc.balances.available || acc.balances.current || 0).toLocaleString()}
                               </p>
+                              <button 
+                                onClick={() => handleEditBenefits(acc)}
+                                className="text-[10px] font-semibold text-neutral-500 hover:text-black uppercase tracking-widest px-2 py-1 rounded bg-neutral-100/50 hover:bg-neutral-200/50 transition-colors"
+                              >
+                                Edit Benefits
+                              </button>
                             </div>
                           </div>
                           {/* Card Benefits Section */}
