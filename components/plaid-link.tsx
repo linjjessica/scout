@@ -97,7 +97,7 @@ export default function PlaidLink() {
       ) : (
         <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
       )}
-      {loading ? 'Processing...' : 'Sync Account'}
+      {loading ? 'Processing...' : 'Sync Account via Plaid'}
     </button>
   );
 }
