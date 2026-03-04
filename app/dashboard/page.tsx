@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
-import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, RefreshCw } from "lucide-react";
+import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign } from "lucide-react";
 
 const categoryIcons: Record<string, any> = {
   'Travel': Car,
@@ -16,7 +16,11 @@ const categoryIcons: Record<string, any> = {
   'Utilities': Zap,
   'Community': LayoutGrid,
   'Payment': DollarSign,
+  'Loan Payments': Landmark,
   'Transfer': ArrowUpRight,
+  'Transfer Out': ArrowUpRight,
+  'Transfer In': ArrowDownLeft,
+  'Income': BadgeDollarSign,
   'Bank Fees': AlertCircle,
   'Recreation': Play,
   'Tax': DollarSign,

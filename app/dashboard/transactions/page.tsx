@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, Chrome, DollarSign, ArrowUpRight, AlertCircle, RefreshCw } from "lucide-react";
+import { CheckCircle, ShoppingBag, Car, Coffee, Play, Zap, LayoutGrid, Chrome, DollarSign, ArrowUpRight, AlertCircle, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Transaction {
@@ -30,7 +30,11 @@ const categoryIcons: Record<string, any> = {
   'Utilities': Zap,
   'Community': LayoutGrid,
   'Payment': DollarSign,
+  'Loan Payments': Landmark,
   'Transfer': ArrowUpRight,
+  'Transfer Out': ArrowUpRight,
+  'Transfer In': ArrowDownLeft,
+  'Income': BadgeDollarSign,
   'Bank Fees': AlertCircle,
   'Recreation': Play,
   'Tax': DollarSign,
