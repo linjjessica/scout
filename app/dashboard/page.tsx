@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PlaidLink from "@/components/plaid-link";
-import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign, LayoutGrid } from "lucide-react";
+import { CreditCard, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, ShoppingBag, RefreshCw, Landmark, ArrowDownLeft, BadgeDollarSign, LayoutGrid, CheckCircle } from "lucide-react";
 import { getCategoryStyle, formatCategoryName } from "@/lib/categories";
 import { getCategoryCoverage, getBaselineRate } from "@/lib/analysis";
 
@@ -165,26 +165,40 @@ export default function DashboardPage() {
                  const IconComponent = cache.icon;
 
                  return (
-                   <div key={i} className="py-4 flex items-center justify-between group">
-                      <div className="flex items-center gap-4 min-w-0 flex-1">
-                         <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shadow-sm border group-hover:scale-105 transition-transform duration-300 flex-shrink-0", cache.color)}>
-                            <IconComponent className="w-5 h-5" /> 
-                         </div>
-                         <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-black tracking-tight truncate max-w-[180px] sm:max-w-xs">{tx.name || tx.merchant_name}</h3>
-                            <div className="flex flex-wrap items-center gap-3 mt-0.5">
-                              <span className="text-[10px] font-semibold text-neutral-400">{tx.date}</span>
-                              {tx.accountName && tx.accountName.trim() && (
-                                <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest bg-black/[0.03] px-1.5 py-0.5 rounded border border-black/5">
-                                  {tx.accountName}
-                                </span>
-                              )}
-                              <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">{MainCategory}</span>
-                            </div>
-                         </div>
-                      </div>
-                      <p className="font-semibold text-black tracking-tight flex-shrink-0 ml-4">-${tx.amount.toFixed(2)}</p>
-                   </div>
+                    <div key={i} className="py-4 flex items-center justify-between group gap-4">
+                       <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shadow-sm border group-hover:scale-105 transition-transform duration-300 flex-shrink-0", cache.color)}>
+                             <IconComponent className="w-5 h-5" /> 
+                          </div>
+                          <div className="min-w-0 flex-1">
+                             <h3 className="font-semibold text-black tracking-tight truncate max-w-[180px] sm:max-w-xs">{tx.name || tx.merchant_name}</h3>
+                             <div className="flex flex-wrap items-center gap-3 mt-0.5">
+                               <span className="text-[10px] font-semibold text-neutral-400">{tx.date}</span>
+                               {tx.accountName && tx.accountName.trim() && (
+                                 <span className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest bg-black/[0.03] px-1.5 py-0.5 rounded border border-black/5">
+                                   {tx.accountName}
+                                 </span>
+                               )}
+                               <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">{MainCategory}</span>
+                             </div>
+                          </div>
+                       </div>
+                       
+                       <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                           {tx.analysis?.isOptimized ? (
+                             <div className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-1 shadow-sm uppercase tracking-tighter">
+                                <CheckCircle className="w-2.5 h-2.5" />
+                                <span>Optimized</span>
+                             </div>
+                           ) : (
+                             <div className="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-1 shadow-sm whitespace-nowrap uppercase tracking-tighter">
+                                <AlertCircle className="w-2.5 h-2.5" />
+                                <span>Use {tx.analysis?.optimalCard}</span>
+                             </div>
+                           )}
+                           <p className="text-sm font-semibold text-black tabular-nums tracking-tight">-${tx.amount.toFixed(2)}</p>
+                       </div>
+                    </div>
                  );
                })}
             </div>

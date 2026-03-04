@@ -98,25 +98,46 @@ const CARDS: CardRule[] = [
   },
 ];
 
-export function analyzeTransaction(transaction: any, userCardNames?: string[]) {
+export function analyzeTransaction(transaction: any, userCardNames?: string[], usedCardName?: string) {
   const category = (transaction.category ? transaction.category[0] : 'GENERAL').toUpperCase().replace(/_/g, ' ');
   let bestCard = null;
   let maxRate = 0;
+
+  // Helper to find a card in our database by name (fuzzy)
+  const findDBProps = (name: string) => {
+    const lowerU = name.toLowerCase();
+    
+    return CARDS.find(dbCard => {
+      const lowerDB = dbCard.cardName.toLowerCase();
+      
+      // 1. Direct inclusion
+      if (lowerU.includes(lowerDB) || lowerDB.includes(lowerU)) return true;
+      
+      // 2. Dynamic brand matching (extracting the first word/brand e.g. "Chase", "Amex")
+      const words = lowerDB.split(' ');
+      if (words.length > 0) {
+        const brand = words[0];
+        // Only match brands that are at least 4 chars to avoid false positives with "The", "Card", etc.
+        if (brand.length >= 4 && lowerU.includes(brand)) {
+           // If it's a known brand, check for one more identifier (e.g. "Gold", "Sapphire", "Double")
+           // to distinguish between multiple cards from same bank
+           if (words.length > 1) {
+             const identifier = words[1];
+             if (lowerU.includes(identifier)) return true;
+           }
+           // Fallback to just brand match if the user's account name is generic (e.g. just "Chase")
+           return true; 
+        }
+      }
+      return false;
+    });
+  };
 
   // If user cards are provided, prioritize them. 
   let cardsToConsider = CARDS;
   if (userCardNames && userCardNames.length > 0) {
     cardsToConsider = CARDS.filter(dbCard => 
-      userCardNames.some(uName => {
-        const lowerU = uName.toLowerCase();
-        const lowerDB = dbCard.cardName.toLowerCase();
-        // Check for full name match or specific brand match (to handle "Chase Checking" vs "Chase Sapphire")
-        return lowerU.includes(lowerDB) || lowerDB.includes(lowerU) || 
-               (lowerU.includes('chase') && lowerDB.includes('chase')) ||
-               (lowerU.includes('amex') && lowerDB.includes('amex')) ||
-               (lowerU.includes('wells fargo') && lowerDB.includes('wells fargo')) ||
-               (lowerU.includes('capital one') && lowerDB.includes('capital one'));
-      })
+      userCardNames.some(uName => findDBProps(uName)?.cardName === dbCard.cardName)
     );
     
     // If none of our DB cards match the user's cards, fall back to all cards
@@ -139,12 +160,31 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[]) {
     }
   });
 
+  // Calculate what the user actually earned
+  let currentRate = 0;
+  if (usedCardName) {
+    const usedDBProps = findDBProps(usedCardName);
+    if (usedDBProps) {
+       const matchedKey = Object.keys(usedDBProps.categories).find(c => 
+         category.includes(c) || c.includes(category)
+       );
+       currentRate = matchedKey ? usedDBProps.categories[matchedKey] : usedDBProps.defaultRate;
+    } else {
+       // Default to 1% baseline if card unknown
+       currentRate = 0.01;
+    }
+  }
+
   const potentialEarnings = transaction.amount * maxRate;
+  const isOptimized = currentRate >= maxRate;
 
   return {
     optimalCard: bestCard,
     potentialEarnings,
     rate: maxRate,
+    currentRate,
+    isOptimized,
+    rewardGap: Math.max(0, maxRate - currentRate)
   };
 }
 

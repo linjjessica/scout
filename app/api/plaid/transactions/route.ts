@@ -124,7 +124,7 @@ export async function GET() {
         accountName,
         // Override the legacy category array so the frontend/analysis works seamlessly
         category: [displayCategory],
-        analysis: analyzeTransaction(txWithCategory, userCardNames),
+        analysis: analyzeTransaction(txWithCategory, userCardNames, accountName),
       };
   }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 

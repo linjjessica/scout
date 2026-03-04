@@ -16,8 +16,11 @@ interface Transaction {
   iso_currency_code: string;
   accountName: string;
   analysis?: {
-    optimalCard: string;
+    optimalCard: string | null;
     rate: number;
+    currentRate: number;
+    isOptimized: boolean;
+    rewardGap: number;
   };
 }
 
@@ -118,18 +121,30 @@ export default function TransactionsPage() {
                            <p className="text-xl font-semibold text-black tabular-nums tracking-tight">-${tx.amount.toFixed(2)}</p>
                            <p className="text-[10px] font-semibold text-neutral-500 tracking-widest uppercase text-right">{tx.iso_currency_code}</p>
                        </div>
-                       
-                       <div className="flex flex-col items-end gap-2">
-                          <div className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 shadow-sm">
-                             <CheckCircle className="w-3.5 h-3.5" />
-                             <span className="tracking-tight uppercase">Optimized</span>
-                          </div>
-                          {tx.analysis && (
-                            <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-widest">
-                              {tx.analysis.optimalCard} • {(tx.analysis.rate * 100).toFixed(0)}%
-                            </span>
-                          )}
-                       </div>
+                                              <div className="flex flex-col items-end gap-2">
+                           {tx.analysis?.isOptimized ? (
+                             <div className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 shadow-sm">
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                <span className="tracking-tight uppercase">Optimized</span>
+                             </div>
+                           ) : (
+                             <div className="text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                                <AlertCircle className="w-3.5 h-3.5" />
+                                <span className="tracking-tight uppercase whitespace-nowrap">Opportunity • Use {tx.analysis?.optimalCard}</span>
+                             </div>
+                           )}
+                           {tx.analysis && (
+                             <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest text-right">
+                               {tx.analysis.isOptimized ? (
+                                 `${tx.analysis.optimalCard || 'SAVVY SPENDING'} • ${(tx.analysis.rate * 100).toFixed(0)}%`
+                               ) : (
+                                 <span className="text-amber-600/70 font-bold">
+                                   Earned {(tx.analysis.currentRate * 100).toFixed(0)}% • Could have earned {(tx.analysis.rate * 100).toFixed(0)}%
+                                 </span>
+                               )}
+                             </span>
+                           )}
+                        </div>
                     </div>
                  </div>
                );
