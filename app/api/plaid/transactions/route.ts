@@ -39,19 +39,22 @@ export async function GET() {
           const accountsResponse = await plaidClient.accountsGet({
             access_token: token,
           });
-          const itemResponse = await plaidClient.itemGet({
-            access_token: token,
-          });
           
-          const institutionId = itemResponse.data.item.institution_id;
+          transactions.push(...syncResponse.data.added);
+
           let institutionData: { name: string; logo: string | null; primary_color: string | null } = { 
-            name: 'Unknown Institution', 
+            name: 'Linked Institution', 
             logo: null, 
             primary_color: null 
           };
           
-          if (institutionId) {
-            try {
+          try {
+            const itemResponse = await plaidClient.itemGet({
+              access_token: token,
+            });
+            const institutionId = itemResponse.data.item.institution_id;
+            
+            if (institutionId) {
               const instResponse = await plaidClient.institutionsGetById({
                 institution_id: institutionId,
                 country_codes: ['US' as any],
@@ -62,12 +65,12 @@ export async function GET() {
                 logo: instResponse.data.institution.logo || null,
                 primary_color: instResponse.data.institution.primary_color || null
               };
-            } catch (instErr) {
-              console.error(`Error fetching institution ${institutionId}:`, instErr);
             }
+          } catch (metaErr) {
+            console.error(`Metadata fetch failed for token:`, metaErr);
+            // We have the accounts, so we continue with fallback name
           }
-          
-          transactions.push(...syncResponse.data.added);
+
           institutions.push({
             institution: institutionData,
             accounts: accountsResponse.data.accounts

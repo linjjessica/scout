@@ -29,7 +29,16 @@ export default function DashboardPage() {
       if (!forceRefresh && cachedData) {
         const parsed = JSON.parse(cachedData);
         setTransactions(parsed.transactions || []);
-        setInstitutions(parsed.institutions || []);
+        
+        if (parsed.institutions) {
+          setInstitutions(parsed.institutions);
+        } else if (parsed.accounts) {
+          // Migration: Map old flat accounts to a generic institution
+          setInstitutions([{ 
+            institution: { name: 'Linked Accounts', logo: null }, 
+            accounts: parsed.accounts 
+          }]);
+        }
         setLoading(false);
         return;
       }
@@ -39,7 +48,14 @@ export default function DashboardPage() {
       
       if (res.ok) {
         setTransactions(data.transactions || []);
-        setInstitutions(data.institutions || []);
+        if (data.institutions) {
+          setInstitutions(data.institutions);
+        } else if (data.accounts) {
+          setInstitutions([{ 
+            institution: { name: 'Linked Accounts', logo: null }, 
+            accounts: data.accounts 
+          }]);
+        }
         // Save to cache
         localStorage.setItem(cacheKey, JSON.stringify(data));
       }
