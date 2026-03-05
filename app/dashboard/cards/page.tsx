@@ -13,6 +13,7 @@ const COMMON_CATEGORIES = [
   "GROCERIES",
   "TRAVEL",
   "GAS STATION",
+  "STREAMING",
   "SERVICE", 
   "SHOPS",
   "ENTERTAINMENT",
@@ -234,9 +235,20 @@ export default function CustomCardsPage() {
       setInlineBenefitsCardName(data.cardName || lookupName);
       setInlineBenefitsDefaultRate(((data.defaultRate || 0.01) * 100).toString());
       
-      const mappedCats = Object.entries(data.categories || {}).map(([name, rate]) => ({
-        name: name as string,
-        rate: ((rate as number) * 100).toString()
+      const rawCategories = Object.entries(data.categories || {});
+      const uniqueCategories: Record<string, number> = {};
+      
+      rawCategories.forEach(([name, rate]) => {
+        const normalized = name.toUpperCase().trim();
+        // If multiple versions of same category, take the highest rate (or just the first)
+        if (!uniqueCategories[normalized] || (rate as number) > uniqueCategories[normalized]) {
+          uniqueCategories[normalized] = rate as number;
+        }
+      });
+
+      const mappedCats = Object.entries(uniqueCategories).map(([name, rate]) => ({
+        name: name,
+        rate: (rate * 100).toString()
       }));
       setInlineBenefitsCategories(mappedCats);
       

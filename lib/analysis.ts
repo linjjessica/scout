@@ -218,7 +218,7 @@ export function analyzeTransaction(transaction: any, userCardNames?: string[], u
 export function getCategoryCoverage(userCardNames: string[], customCards: CardRule[] = []) {
   const commonCategories = [
     'FOOD AND DRINK', 'GROCERIES', 'TRAVEL', 
-    'GAS STATION', 'SERVICE', 'SHOPS', 'ENTERTAINMENT'
+    'GAS STATION', 'SERVICE', 'SHOPS', 'ENTERTAINMENT', 'STREAMING'
   ];
   
   const ALL_CARDS = [...customCards, ...CARDS];
